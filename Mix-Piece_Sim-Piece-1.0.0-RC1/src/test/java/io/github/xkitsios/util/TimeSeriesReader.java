@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
 public class TimeSeriesReader {
-    public static TimeSeries getTimeSeries(InputStream inputStream, String delimiter, boolean gzip) {
+    public static TimeSeries getTimeSeries(InputStream inputStream, String delimiter, boolean gzip, int bufferWindow) {
         ArrayList<Point> ts = new ArrayList<>();
         double max = -Double.MAX_VALUE;
         double min = Double.MAX_VALUE;
@@ -19,7 +19,9 @@ public class TimeSeriesReader {
             BufferedReader bufferedReader = new BufferedReader(decoder);
 
             String line;
-            while ((line = bufferedReader.readLine()) != null) {
+
+            int numberOfDataPoints = 0;
+            while ((line = bufferedReader.readLine()) != null && numberOfDataPoints < bufferWindow) {
                 String[] elements = line.split(delimiter);
                 long timestamp = Long.parseLong(elements[0]);
                 double value = Double.parseDouble(elements[1]);
@@ -27,6 +29,8 @@ public class TimeSeriesReader {
 
                 max = Math.max(max, value);
                 min = Math.min(min, value);
+
+                numberOfDataPoints++;
             }
         } catch (IOException e) {
             e.printStackTrace();

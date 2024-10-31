@@ -21,6 +21,12 @@ namespace LowBandwidthDtFunction.AzureFunction
         public void Run([EventGridTrigger] string cloudEvent)
         {
             _logger.LogInformation("Received a message from the EventGrid: {cloudEvent}", cloudEvent);
+<<<<<<< HEAD
+=======
+
+            // Upon receiving an event containing a new set of PLA segments, queue it up for processing
+            // before the next time interval.
+>>>>>>> 7daa380ed9cbcd11304133857a951566883a7b50
         }
     }
 }

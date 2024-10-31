@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Buffered-Sim-Piece-Mix-Piece": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
