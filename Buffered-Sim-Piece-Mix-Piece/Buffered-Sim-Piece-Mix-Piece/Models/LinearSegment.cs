@@ -10,7 +10,17 @@ namespace Buffered_Sim_Piece_Mix_Piece.Models
     {
         public double QuantizedOriginValue { get; set; }
 
-        public double Gradient { get; set; }
+        public double UpperBoundGradient { get; set; }
+
+        public double LowerBoundGradient { get; set; }
+
+        public double Gradient
+        {
+            get
+            {
+                return (UpperBoundGradient + LowerBoundGradient) / 2;
+            }
+        }
 
         public List<long> Timestamps { get; private set; } = timestamps;
     }
