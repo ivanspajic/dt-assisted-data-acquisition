@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Buffered_Sim_Piece_Mix_Piece.Models
 {
-    internal class Interval
+    internal class Segment
     {
         public long Timestamp { get; set; }
 

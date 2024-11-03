@@ -1,4 +1,5 @@
-﻿using Buffered_Sim_Piece_Mix_Piece.Models;
+﻿using Buffered_Sim_Piece_Mix_Piece.Algorithms;
+using Buffered_Sim_Piece_Mix_Piece.Models;
 using Buffered_Sim_Piece_Mix_Piece.Utilities;
 using System.IO.Compression;
 using System.Text.Json;
@@ -36,9 +37,9 @@ namespace Buffered_Sim_Piece_Mix_Piece
             Console.WriteLine("Sim-Piece");
             do
             {
-                var compressedTimeSeries = PiecewiseLinearApproximation.CompressWithSimPiece(timeSeries, epsilonPercentage);
+                var compressedTimeSeries = SimPiece.Compress(timeSeries, epsilonPercentage);
 
-                var compressionRatio = GetCompressionRatio(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForSimPiece(timeSeries, compressedTimeSeries);
 
                 Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio.ToString("#.000")}");
 
@@ -52,9 +53,9 @@ namespace Buffered_Sim_Piece_Mix_Piece
             Console.WriteLine("Mix-Piece");
             do
             {
-                var compressedTimeSeries = PiecewiseLinearApproximation.CompressWithMixPiece(timeSeries, epsilonPercentage);
+                var compressedTimeSeries = MixPiece.Compress(timeSeries, epsilonPercentage);
 
-                var compressionRatio = GetCompressionRatio(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
                 Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio}");
 
@@ -65,33 +66,18 @@ namespace Buffered_Sim_Piece_Mix_Piece
             Console.WriteLine();
             Console.WriteLine();
 
-            //Console.WriteLine("Buffered Sim-Piece");
-            //do
-            //{
-            //    var compressedTimeSeries = PiecewiseLinearApproximation.CompressWithSimPiece(timeSeries, epsilonPercentage);
+            Console.WriteLine("Buffered-Piece");
+            do
+            {
+                var compressedTimeSeries = BufferedPiece.Compress(timeSeries, epsilonPercentage);
 
-            //    var compressionRatio = GetCompressionRatio(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForBufferedPiece(timeSeries, compressedTimeSeries);
 
-            //    Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio}");
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio}");
 
-            //    epsilonPercentage += epsilonPercentageSteps;
-            //}
-            //while (epsilonPercentage <= epsilonMaximum);
-        }
-
-        private static double GetCompressionRatio(List<Point> timeSeries, List<LinearSegment> compressedTimeSeries)
-        {
-            // A point can be represented with 1 byte for the timestamp + 8 bytes for the value.
-            double timeSeriesSize = timeSeries.Count * (1 + 8);
-
-            // A linear segment can be represented with 8 bytes for the quantized value + 8 bytes for the
-            // gradient + 1 byte for every timestamp in every group.
-            double compressedTimeSeriesSize = compressedTimeSeries.Count * (8 + 8);
-
-            foreach (var linearSegment in compressedTimeSeries)
-                compressedTimeSeriesSize += linearSegment.Timestamps.Count;
-
-            return timeSeriesSize / compressedTimeSeriesSize;
+                epsilonPercentage += epsilonPercentageSteps;
+            }
+            while (epsilonPercentage <= epsilonMaximum);
         }
     }
 }

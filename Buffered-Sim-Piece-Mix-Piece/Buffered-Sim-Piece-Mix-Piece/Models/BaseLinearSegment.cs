@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Buffered_Sim_Piece_Mix_Piece.Models
 {
-    internal class LinearSegment(List<long> timestamps)
+    internal class BaseLinearSegment
     {
-        public double QuantizedOriginValue { get; set; }
-
         public double UpperBoundGradient { get; set; }
 
         public double LowerBoundGradient { get; set; }
@@ -21,7 +19,5 @@ namespace Buffered_Sim_Piece_Mix_Piece.Models
                 return (UpperBoundGradient + LowerBoundGradient) / 2;
             }
         }
-
-        public List<long> Timestamps { get; private set; } = timestamps;
     }
 }
