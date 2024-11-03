@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Buffered_Sim_Piece_Mix_Piece.Models
+namespace Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments
 {
-    internal class QuantizedLinearSegment(List<long> timestamps) : BaseLinearSegment
+    internal class GroupedLinearSegment(List<long> timestamps) : BaseLinearSegment
     {
         public double QuantizedOriginValue { get; set; }
 

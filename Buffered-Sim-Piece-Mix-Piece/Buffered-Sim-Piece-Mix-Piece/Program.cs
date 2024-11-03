@@ -34,14 +34,14 @@ namespace Buffered_Sim_Piece_Mix_Piece
             var epsilonPercentageSteps = 0.5;
             var epsilonMaximum = 5;
 
-            Console.WriteLine("Sim-Piece");
+            Console.WriteLine($"Data set: {name}, Algorithm: Sim-Piece");
             do
             {
                 var compressedTimeSeries = SimPiece.Compress(timeSeries, epsilonPercentage);
 
                 var compressionRatio = PlaUtils.GetCompressionRatioForSimPiece(timeSeries, compressedTimeSeries);
 
-                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio.ToString("#.000")}");
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
                 epsilonPercentage += epsilonPercentageSteps;
             }
@@ -50,14 +50,16 @@ namespace Buffered_Sim_Piece_Mix_Piece
             Console.WriteLine();
             Console.WriteLine();
 
-            Console.WriteLine("Mix-Piece");
+            epsilonPercentage = 0.5;
+
+            Console.WriteLine($"Data set: {name}, Algorithm: Mix-Piece");
             do
             {
                 var compressedTimeSeries = MixPiece.Compress(timeSeries, epsilonPercentage);
 
                 var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
-                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio}");
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
                 epsilonPercentage += epsilonPercentageSteps;
             }
@@ -66,14 +68,16 @@ namespace Buffered_Sim_Piece_Mix_Piece
             Console.WriteLine();
             Console.WriteLine();
 
-            Console.WriteLine("Buffered-Piece");
+            epsilonPercentage = 0.5;
+
+            Console.WriteLine($"Data set: {name}, Algorithm: Buffered-Piece");
             do
             {
                 var compressedTimeSeries = BufferedPiece.Compress(timeSeries, epsilonPercentage);
 
                 var compressionRatio = PlaUtils.GetCompressionRatioForBufferedPiece(timeSeries, compressedTimeSeries);
 
-                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio}");
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
                 epsilonPercentage += epsilonPercentageSteps;
             }

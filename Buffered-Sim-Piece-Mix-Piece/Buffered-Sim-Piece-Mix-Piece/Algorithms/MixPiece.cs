@@ -1,4 +1,5 @@
 ﻿using Buffered_Sim_Piece_Mix_Piece.Models;
+using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
 using Buffered_Sim_Piece_Mix_Piece.Utilities;
 using System;
 using System.Collections.Generic;
@@ -8,20 +9,37 @@ using System.Threading.Tasks;
 
 namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 {
+    /// <summary>
+    /// Implements the Mix-Piece Piece-wise Linear Approximation algorithm.
+    /// </summary>
     internal static class MixPiece
     {
         /// <summary>
         /// Performs lossy compression using the Mix-Piece algorithm.
         /// </summary>
         /// <param name="timeSeries"></param>
-        /// <param name="epsilon"></param>
+        /// <param name="epsilonPercentage"></param>
         /// <returns></returns>
-        public static List<QuantizedLinearSegment> Compress(List<Point> timeSeries, double epsilon)
+        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> Compress(List<Point> timeSeries, double epsilonPercentage)
         {
+            if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
+                throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
 
+            var epsilon = epsilonPercentage / 100;
+
+            var segmentGroups = GetSegmentGroupsFromTimeSeries(timeSeries, epsilon);
+            var linearSegmentGroups = GetLinearSegmentGroupsFromSegmentGroups(segmentGroups);
+
+            return linearSegmentGroups;
         }
 
-        private static Dictionary<double, List<Segment>> GetFloorAndCeilSegmentGroupsFromTimeSeries(List<Point> timeSeries, double epsilon)
+        /// <summary>
+        /// Phase 1 of the algorithm.
+        /// </summary>
+        /// <param name="timeSeries"></param>
+        /// <param name="epsilon"></param>
+        /// <returns></returns>
+        private static Dictionary<double, List<Segment>> GetSegmentGroupsFromTimeSeries(List<Point> timeSeries, double epsilon)
         {
             var segmentGroups = new Dictionary<double, List<Segment>>();
 
@@ -108,6 +126,12 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     currentFloorLowerBoundGradient = double.NegativeInfinity;
                     currentCeilingUpperBoundGradient = double.PositiveInfinity;
                     currentCeilingLowerBoundGradient = double.NegativeInfinity;
+
+                    floorIncludedAnotherPoint = true;
+                    ceilingIncludedAnotherPoint = true;
+
+                    floorSegmentLength = 0;
+                    ceilingSegmentLength = 0;
                 }
                 else
                 {
@@ -160,12 +184,149 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             return segmentGroups;
         }
 
-        private static Tuple<List<QuantizedLinearSegment>, List<UnquantizedLinearSegment>> GetLinearSegmentGroupsFromSegmentGroups(Dictionary<double, List<Segment>> segmentGroups)
+        /// <summary>
+        /// Phase 2 of the algorithm.
+        /// </summary>
+        /// <param name="segmentGroups"></param>
+        /// <returns></returns>
+        private static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> GetLinearSegmentGroupsFromSegmentGroups(Dictionary<double, List<Segment>> segmentGroups)
         {
-            var quantizedLinearSegmentList = new List<QuantizedLinearSegment>();
-            var unquantizedLinearSegmentList = new List<UnquantizedLinearSegment>();
+            var groupedLinearSegmentList = new List<GroupedLinearSegment>();
+            var stillUngroupedSegmentGroups = new Dictionary<double, List<Segment>>();
 
+            foreach (var segmentGroupPair in segmentGroups)
+            {
+                var currentGroupedLinearSegment = new GroupedLinearSegment([])
+                {
+                    QuantizedOriginValue = segmentGroupPair.Key,
+                    UpperBoundGradient = double.PositiveInfinity,
+                    LowerBoundGradient = double.NegativeInfinity
+                };
 
+                segmentGroupPair.Value.Sort(PlaUtils.CompareSegmentsByLowerBound);
+
+                foreach (var currentSegment in segmentGroupPair.Value)
+                {
+                    // Check if there is any overlap between the current segment and the current bounds of the group.
+                    if (currentSegment.LowerBoundGradient <= currentGroupedLinearSegment.UpperBoundGradient && 
+                        currentSegment.UpperBoundGradient >= currentGroupedLinearSegment.LowerBoundGradient)
+                    {
+                        // In case of an overlap, tighten the upper and lower bounds further.
+                        currentGroupedLinearSegment.UpperBoundGradient = Math.Min(currentGroupedLinearSegment.UpperBoundGradient, currentSegment.UpperBoundGradient);
+                        currentGroupedLinearSegment.LowerBoundGradient = Math.Max(currentGroupedLinearSegment.LowerBoundGradient, currentSegment.LowerBoundGradient);
+                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.Timestamp);
+                    }
+                    else
+                    {
+                        // Check if the segment group has already been added to.
+                        if (currentGroupedLinearSegment.Timestamps.Count > 1)
+                        {
+                            // In case of the group already containing more than one timestamp, there must be overlaps between the previous segments. Hence,
+                            // add the current group under creation to the list of groups.
+                            groupedLinearSegmentList.Add(currentGroupedLinearSegment);
+                        }
+                        // Otherwise, add the current segment to the list of still ungrouped segments.
+                        else
+                        {
+                            if (!stillUngroupedSegmentGroups.ContainsKey(segmentGroupPair.Key))
+                                stillUngroupedSegmentGroups[segmentGroupPair.Key] = [];
+
+                            stillUngroupedSegmentGroups[segmentGroupPair.Key].Add(currentSegment);
+                        }
+
+                        // Reset the new group creation with the current segment's information.
+                        currentGroupedLinearSegment = new GroupedLinearSegment([])
+                        {
+                            QuantizedOriginValue = segmentGroupPair.Key,
+                            UpperBoundGradient = currentSegment.UpperBoundGradient,
+                            LowerBoundGradient = currentSegment.LowerBoundGradient
+                        };
+                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.Timestamp);
+                    }
+                }
+
+                // Check if the group still under creation can be added to the list of groups.
+                if (currentGroupedLinearSegment.Timestamps.Count > 1)
+                    groupedLinearSegmentList.Add(currentGroupedLinearSegment);
+                else
+                {
+                    if (!stillUngroupedSegmentGroups.ContainsKey(segmentGroupPair.Key))
+                        stillUngroupedSegmentGroups[segmentGroupPair.Key] = [];
+
+                    stillUngroupedSegmentGroups[segmentGroupPair.Key].Add(new Segment
+                    {
+                        UpperBoundGradient = currentGroupedLinearSegment.UpperBoundGradient,
+                        LowerBoundGradient = currentGroupedLinearSegment.LowerBoundGradient,
+                        Timestamp = currentGroupedLinearSegment.Timestamps[0]
+                    });
+                }
+            }
+
+            // Similarly, group the remaining segments as best as possible according to their gradients.
+            var halfGroupedLinearSegmentList = new List<HalfGroupedLinearSegment>();
+            var ungroupedLinearSegmentList = new List<UngroupedLinearSegment>();
+
+            foreach (var ungroupedSegmentGroupPair in stillUngroupedSegmentGroups)
+            {
+                var currentHalfGroupedLinearSegment = new HalfGroupedLinearSegment([])
+                {
+                    UpperBoundGradient = double.PositiveInfinity,
+                    LowerBoundGradient = double.NegativeInfinity
+                };
+
+                ungroupedSegmentGroupPair.Value.Sort(PlaUtils.CompareSegmentsByLowerBound);
+
+                foreach (var currentSegment in ungroupedSegmentGroupPair.Value)
+                {
+                    if (currentSegment.LowerBoundGradient <= currentHalfGroupedLinearSegment.UpperBoundGradient &&
+                        currentSegment.UpperBoundGradient >= currentHalfGroupedLinearSegment.LowerBoundGradient)
+                    {
+                        currentHalfGroupedLinearSegment.UpperBoundGradient = Math.Min(currentHalfGroupedLinearSegment.UpperBoundGradient,
+                            currentSegment.UpperBoundGradient);
+                        currentHalfGroupedLinearSegment.LowerBoundGradient = Math.Max(currentHalfGroupedLinearSegment.LowerBoundGradient,
+                            currentSegment.LowerBoundGradient);
+                        currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs.Add(new Tuple<double, long>(ungroupedSegmentGroupPair.Key,
+                            currentSegment.Timestamp));
+                    }
+                    else
+                    {
+                        if (currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs.Count > 1)
+                            halfGroupedLinearSegmentList.Add(currentHalfGroupedLinearSegment);
+                        else
+                        {
+                            ungroupedLinearSegmentList.Add(new UngroupedLinearSegment
+                            {
+                                ValueTimestampPair = new Tuple<double, long>(currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item1,
+                                    currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item2)
+                            });
+                        }
+
+                        currentHalfGroupedLinearSegment = new HalfGroupedLinearSegment([])
+                        {
+                            UpperBoundGradient = currentSegment.UpperBoundGradient,
+                            LowerBoundGradient = currentSegment.LowerBoundGradient
+                        };
+                        currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs.Add(new Tuple<double, long>(ungroupedSegmentGroupPair.Key,
+                            currentSegment.Timestamp));
+                    }
+                }
+
+                // Check for any group still under creation.
+                if (currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs.Count > 1)
+                    halfGroupedLinearSegmentList.Add(currentHalfGroupedLinearSegment);
+                else
+                {
+                    ungroupedLinearSegmentList.Add(new UngroupedLinearSegment
+                    {
+                        ValueTimestampPair = new Tuple<double, long>(currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item1,
+                            currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item2)
+                    });
+                }
+            }
+
+            return new Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>>(groupedLinearSegmentList,
+                halfGroupedLinearSegmentList,
+                ungroupedLinearSegmentList);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Buffered_Sim_Piece_Mix_Piece.Models;
+using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
 using Buffered_Sim_Piece_Mix_Piece.Utilities;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 {
+    /// <summary>
+    /// Implements the Sim-Piece Piece-wise Linear Approximation algorithm.
+    /// </summary>
     internal static class SimPiece
     {
         /// <summary>
@@ -17,7 +21,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
         /// <param name="epsilonPercentage"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static List<QuantizedLinearSegment> Compress(List<Point> timeSeries, double epsilonPercentage)
+        public static List<GroupedLinearSegment> Compress(List<Point> timeSeries, double epsilonPercentage)
         {
             if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
                 throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
@@ -98,13 +102,13 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             return segmentGroups;
         }
 
-        private static List<QuantizedLinearSegment> GetLinearSegmentsFromSegmentGroups(Dictionary<double, List<Segment>> segmentGroups)
+        private static List<GroupedLinearSegment> GetLinearSegmentsFromSegmentGroups(Dictionary<double, List<Segment>> segmentGroups)
         {
-            var linearSegmentList = new List<QuantizedLinearSegment>();
+            var linearSegmentList = new List<GroupedLinearSegment>();
 
             foreach (var segmentGroupPair in segmentGroups)
             {
-                var currentLinearSegment = new QuantizedLinearSegment([])
+                var currentLinearSegment = new GroupedLinearSegment([])
                 {
                     QuantizedOriginValue = segmentGroupPair.Key,
                     UpperBoundGradient = double.PositiveInfinity,
@@ -129,7 +133,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         // In case of no overlaps, finalize the creation of the current segment.
                         linearSegmentList.Add(currentLinearSegment);
 
-                        currentLinearSegment = new QuantizedLinearSegment([])
+                        currentLinearSegment = new GroupedLinearSegment([])
                         {
                             QuantizedOriginValue = segmentGroupPair.Key,
                             UpperBoundGradient = double.PositiveInfinity,
