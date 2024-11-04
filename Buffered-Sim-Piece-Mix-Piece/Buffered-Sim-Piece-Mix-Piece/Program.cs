@@ -69,19 +69,6 @@ namespace Buffered_Sim_Piece_Mix_Piece
             Console.WriteLine();
 
             epsilonPercentage = 0.5;
-
-            //Console.WriteLine($"Data set: {name}, Algorithm: Buffered-Piece");
-            //do
-            //{
-            //    var compressedTimeSeries = BufferedPiece.Compress(timeSeries, epsilonPercentage);
-
-            //    var compressionRatio = PlaUtils.GetCompressionRatioForBufferedPiece(timeSeries, compressedTimeSeries);
-
-            //    Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
-
-            //    epsilonPercentage += epsilonPercentageSteps;
-            //}
-            //while (epsilonPercentage <= epsilonMaximum);
         }
     }
 }
