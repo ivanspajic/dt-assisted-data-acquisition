@@ -33,7 +33,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
             // A point can be represented with 1 byte for the timestamp + 8 bytes for the value.
             double timeSeriesSize = timeSeries.Count * (1 + 8);
 
-            // A grouped linear segment can be represented with 8 bytes for the quantized value + 8 bytes for the gradient + 1 byte for every timestamp in the group.
+            // A grouped linear segment can be represented with 8 bytes for the quantized value + 8 bytes for the gradient + 1 byte for every timestamp in the
+            // group.
             double compressedTimeSeriesSize = compressedTimeSeries.Count * (8 + 8);
 
             foreach (var linearSegment in compressedTimeSeries)
@@ -48,7 +49,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
             // A point can be represented with 1 byte for the timestamp + 8 bytes for the value.
             double timeSeriesSize = timeSeries.Count * (1 + 8);
 
-            // A grouped linear segment can be represented with 8 bytes for the quantized value + 8 bytes for the gradient + 1 byte for every timestamp in the group.
+            // A grouped linear segment can be represented with 8 bytes for the quantized value + 8 bytes for the gradient + 1 byte for every timestamp in the
+            // group.
             double compressedGroupedLinearSegmentsSize = compressedTimeSeries.Item1.Count * (8 + 8);
 
             // A half-grouped linear segment can be represented with 8 bytes for the gradient + 8 bytes for every quantized value in the group + 1 byte for every
