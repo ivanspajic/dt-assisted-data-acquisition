@@ -21,7 +21,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
         /// <param name="timeSeries"></param>
         /// <param name="epsilonPercentage"></param>
         /// <returns></returns>
-        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> Compress(List<Point> timeSeries, double epsilonPercentage)
+        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> Compress(List<Point> timeSeries, 
+            double epsilonPercentage)
         {
             if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
                 throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
@@ -42,30 +43,21 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
         /// <returns></returns>
         private static Dictionary<double, List<Segment>> GetFewestSegmentGroupsFromTimeSeries(List<Point> timeSeries, double epsilon)
         {
-            var timeSeriesSegmentCombinations = GetSegmentPossibilitiesForTimeSeries(timeSeries, epsilon).ToList();
+            var possibleSegmentPaths = GetPossibleSegmentPathsForTimeSeries(timeSeries, epsilon);
 
-            // TODO: remember to update all of the algorithms to use the new segment model instead of Dictionaries with quantization values as keys.
-            // Recursively go through the collection from the start and call the inner method again with the respective ending timestamps.
-            // Upon a new segment, add the end timestamp to a list that is added to recursively.
-            // After all the segments were looped through and all the lists of all possible connections have been constructed, find the shortest one!
-            // Use the timestamps from the shortest list to filter out the segments to pass onto the next stage.
-
-            return new();            
+            return new();
         }
 
-        private static HashSet<Segment> GetSegmentPossibilitiesForTimeSeries(List<Point> timeSeries, double epsilon)
+        private static HashSet<SegmentPath> GetPossibleSegmentPathsForTimeSeries(List<Point> timeSeries, double epsilon)
         {
-            var segmentPossibilitySetComparer = new FirstSecondItemSegmentComparer();
-            var segmentPossibilities = new HashSet<Segment>(segmentPossibilitySetComparer);
+            var segmentPathEqualityComparer = new SegmentPathEqualityComparer();
+            var possibleSegmentPaths = new HashSet<SegmentPath>(segmentPathEqualityComparer);
 
             var currentStartPoint = timeSeries[0];
 
             var currentQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentStartPoint.Value, epsilon);
             var currentUpperBoundGradient = double.PositiveInfinity;
             var currentLowerBoundGradient = double.NegativeInfinity;
-
-            var segmentStartTimestamp = timeSeries[0].Timestamp;
-            var segmentEndTimestamp = timeSeries[1].Timestamp;
 
             for (var i = 0; i < timeSeries.Count - 1; i++)
             {
@@ -75,13 +67,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 // Use the point-slope form to check whether the next point's value is outside of the current upper and lower bounds.
                 if (nextPoint.Value > currentUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue + epsilon ||
                     nextPoint.Value < currentLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue - epsilon)
-                {
                     // If the next point is out of bounds, mark the segment creation as finalized.
                     segmentCreationFinalized = true;
-
-                    // The next point cannot be included, so the end timestamp is the current point's timestamp.
-                    segmentEndTimestamp = timeSeries[i].Timestamp;
-                }
                 else
                 {
                     // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
@@ -93,37 +80,43 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue - epsilon)
                         // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
                         currentLowerBoundGradient = (nextPoint.Value - currentStartPoint.Value - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
-
-                    // The next point is within bounds, so the end timestamp for the segment is the next point's timestamp.
-                    segmentEndTimestamp = nextPoint.Timestamp;
                 }
+
+                var continuedTimeSeriesIndex = i;
+
+                if (!segmentCreationFinalized)
+                    continuedTimeSeriesIndex = i + 1;
 
                 var currentSegment = new Segment
                 {
                     LowerBoundGradient = currentLowerBoundGradient,
                     UpperBoundGradient = currentUpperBoundGradient,
-                    Timestamp = currentStartPoint.Timestamp,
-                    StartTimestamp = segmentStartTimestamp,
-                    EndTimestamp = segmentEndTimestamp
+                    StartTimestamp = currentStartPoint.Timestamp,
+                    EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp
                 };
 
-                segmentPossibilities.Add(currentSegment);
-
-                if (i < timeSeries.Count - 2)
+                var possibleSegmentPath = new SegmentPath
                 {
-                    var remainingTimeSeries = timeSeries.Take(new Range(i + 1, timeSeries.Count)).ToList();
-                    var remainingTimeSeriesSegmentPossibilities = GetSegmentPossibilitiesForTimeSeries(remainingTimeSeries, epsilon);
+                    Segment = currentSegment
+                };
 
-                    segmentPossibilities = segmentPossibilities.Union(remainingTimeSeriesSegmentPossibilities).ToHashSet(segmentPossibilitySetComparer);
+                if (i < timeSeries.Count - 1)
+                {
+                    var remainingTimeSeries = timeSeries.Take(new Range(continuedTimeSeriesIndex, timeSeries.Count)).ToList();
+                    var remainingTimeSeriesPossibleSegmentPaths = GetPossibleSegmentPathsForTimeSeries(remainingTimeSeries, epsilon);
+
+                    possibleSegmentPath.PossiblePaths = remainingTimeSeriesPossibleSegmentPaths;
                 }
+
+                possibleSegmentPaths.Add(possibleSegmentPath);
 
                 // Check if segment creation is finalized, in which case all possible combinations for this time series have been found.
                 if (segmentCreationFinalized)
-                    return segmentPossibilities;
+                    return possibleSegmentPaths;
             }
 
             // The end of the time series is reached, so return all previously found combinations.
-            return segmentPossibilities;
+            return possibleSegmentPaths;
         }
 
         /// <summary>
@@ -156,7 +149,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         // In case of an overlap, tighten the upper and lower bounds further.
                         currentGroupedLinearSegment.UpperBoundGradient = Math.Min(currentGroupedLinearSegment.UpperBoundGradient, currentSegment.UpperBoundGradient);
                         currentGroupedLinearSegment.LowerBoundGradient = Math.Max(currentGroupedLinearSegment.LowerBoundGradient, currentSegment.LowerBoundGradient);
-                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.Timestamp);
+                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.StartTimestamp);
                     }
                     else
                     {
@@ -183,7 +176,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                             UpperBoundGradient = currentSegment.UpperBoundGradient,
                             LowerBoundGradient = currentSegment.LowerBoundGradient
                         };
-                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.Timestamp);
+                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.StartTimestamp);
                     }
                 }
 
@@ -199,7 +192,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     {
                         UpperBoundGradient = currentGroupedLinearSegment.UpperBoundGradient,
                         LowerBoundGradient = currentGroupedLinearSegment.LowerBoundGradient,
-                        Timestamp = currentGroupedLinearSegment.Timestamps[0]
+                        StartTimestamp = currentGroupedLinearSegment.Timestamps[0]
                     });
                 }
             }
@@ -228,7 +221,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         currentHalfGroupedLinearSegment.LowerBoundGradient = Math.Max(currentHalfGroupedLinearSegment.LowerBoundGradient,
                             currentSegment.LowerBoundGradient);
                         currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs.Add(new Tuple<double, long>(ungroupedSegmentGroupPair.Key,
-                            currentSegment.Timestamp));
+                            currentSegment.StartTimestamp));
                     }
                     else
                     {
@@ -249,7 +242,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                             LowerBoundGradient = currentSegment.LowerBoundGradient
                         };
                         currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs.Add(new Tuple<double, long>(ungroupedSegmentGroupPair.Key,
-                            currentSegment.Timestamp));
+                            currentSegment.StartTimestamp));
                     }
                 }
 
@@ -271,16 +264,16 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 ungroupedLinearSegmentList);
         }
 
-        private class FirstSecondItemSegmentComparer : EqualityComparer<Segment>
+        private class SegmentPathEqualityComparer : EqualityComparer<SegmentPath>
         {
-            public override bool Equals(Segment? x, Segment? y)
+            public override bool Equals(SegmentPath? x, SegmentPath? y)
             {
-                return x.StartTimestamp == y.StartTimestamp && x.EndTimestamp == y.EndTimestamp;
+                return x.Segment.StartTimestamp == y.Segment.StartTimestamp && x.Segment.EndTimestamp == y.Segment.EndTimestamp;
             }
 
-            public override int GetHashCode([DisallowNull] Segment obj)
+            public override int GetHashCode([DisallowNull] SegmentPath obj)
             {
-                return (obj.StartTimestamp.ToString() + obj.EndTimestamp.ToString()).GetHashCode();
+                return (obj.Segment.StartTimestamp.ToString() + obj.Segment.EndTimestamp.ToString()).GetHashCode();
             }
         }
     }

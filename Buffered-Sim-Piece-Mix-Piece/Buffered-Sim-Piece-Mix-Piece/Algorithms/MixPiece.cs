@@ -101,7 +101,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         {
                             LowerBoundGradient = currentFloorLowerBoundGradient,
                             UpperBoundGradient = currentFloorUpperBoundGradient,
-                            Timestamp = currentPoint.Timestamp
+                            StartTimestamp = currentPoint.Timestamp,
+                            EndTimestamp = timeSeries[i].Timestamp
                         });
                     }
                     else
@@ -113,12 +114,13 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         {
                             LowerBoundGradient = currentCeilingLowerBoundGradient,
                             UpperBoundGradient = currentCeilingUpperBoundGradient,
-                            Timestamp = currentPoint.Timestamp
+                            StartTimestamp = currentPoint.Timestamp,
+                            EndTimestamp = timeSeries[i].Timestamp
                         });
                     }
 
                     // Reset before continuing.
-                    currentPoint = nextPoint;
+                    currentPoint = timeSeries[i];
 
                     currentFloorQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentPoint.Value, epsilon);
                     currentCeilingQuantizedValue = PlaUtils.GetCeilingQuantizedValue(currentPoint.Value, epsilon);
@@ -133,26 +135,24 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     floorSegmentLength = 0;
                     ceilingSegmentLength = 0;
                 }
-                else
-                {
-                    // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away or above the lower bound but more
-                    // than an epsilon away, for both quantized value types. If true, adjust the bounds to fit the point within an epsilon.
-                    if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
-                        currentFloorUpperBoundGradient = (nextPoint.Value - currentFloorQuantizedValue + epsilon) /
-                            (nextPoint.Timestamp - currentPoint.Timestamp);
 
-                    if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentFloorQuantizedValue + epsilon)
-                        currentFloorLowerBoundGradient = (nextPoint.Value - currentFloorQuantizedValue - epsilon) /
-                            (nextPoint.Timestamp - currentPoint.Timestamp);
+                // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away or above the lower bound but more
+                // than an epsilon away, for both quantized value types. If true, adjust the bounds to fit the point within an epsilon.
+                if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                    currentFloorUpperBoundGradient = (nextPoint.Value - currentFloorQuantizedValue + epsilon) /
+                        (nextPoint.Timestamp - currentPoint.Timestamp);
 
-                    if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
-                        currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) / 
-                            (nextPoint.Timestamp - currentPoint.Timestamp);
+                if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentFloorQuantizedValue + epsilon)
+                    currentFloorLowerBoundGradient = (nextPoint.Value - currentFloorQuantizedValue - epsilon) /
+                        (nextPoint.Timestamp - currentPoint.Timestamp);
 
-                    if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue + epsilon)
-                        currentCeilingLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) /
-                            (nextPoint.Timestamp - currentPoint.Timestamp);
-                }
+                if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                    currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) / 
+                        (nextPoint.Timestamp - currentPoint.Timestamp);
+
+                if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue + epsilon)
+                    currentCeilingLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) /
+                        (nextPoint.Timestamp - currentPoint.Timestamp);
             }
 
             // Add the segment still under creation at the end of the time series.
@@ -165,7 +165,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 {
                     LowerBoundGradient = currentFloorLowerBoundGradient,
                     UpperBoundGradient = currentFloorUpperBoundGradient,
-                    Timestamp = currentPoint.Timestamp
+                    StartTimestamp = currentPoint.Timestamp,
+                    EndTimestamp = timeSeries[^1].Timestamp
                 });
             }
             else
@@ -177,7 +178,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 {
                     LowerBoundGradient = currentCeilingLowerBoundGradient,
                     UpperBoundGradient = currentCeilingUpperBoundGradient,
-                    Timestamp = currentPoint.Timestamp
+                    StartTimestamp = currentPoint.Timestamp,
+                    EndTimestamp = timeSeries[^1].Timestamp
                 });
             }
 
@@ -214,7 +216,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         // In case of an overlap, tighten the upper and lower bounds further.
                         currentGroupedLinearSegment.UpperBoundGradient = Math.Min(currentGroupedLinearSegment.UpperBoundGradient, currentSegment.UpperBoundGradient);
                         currentGroupedLinearSegment.LowerBoundGradient = Math.Max(currentGroupedLinearSegment.LowerBoundGradient, currentSegment.LowerBoundGradient);
-                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.Timestamp);
+                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.StartTimestamp);
                     }
                     else
                     {
@@ -241,7 +243,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                             UpperBoundGradient = currentSegment.UpperBoundGradient,
                             LowerBoundGradient = currentSegment.LowerBoundGradient
                         };
-                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.Timestamp);
+                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.StartTimestamp);
                     }
                 }
 
@@ -257,7 +259,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     {
                         UpperBoundGradient = currentGroupedLinearSegment.UpperBoundGradient,
                         LowerBoundGradient = currentGroupedLinearSegment.LowerBoundGradient,
-                        Timestamp = currentGroupedLinearSegment.Timestamps[0]
+                        StartTimestamp = currentGroupedLinearSegment.Timestamps[0]
                     });
                 }
             }
@@ -286,7 +288,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         currentHalfGroupedLinearSegment.LowerBoundGradient = Math.Max(currentHalfGroupedLinearSegment.LowerBoundGradient,
                             currentSegment.LowerBoundGradient);
                         currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs.Add(new Tuple<double, long>(ungroupedSegmentGroupPair.Key,
-                            currentSegment.Timestamp));
+                            currentSegment.StartTimestamp));
                     }
                     else
                     {
@@ -307,7 +309,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                             LowerBoundGradient = currentSegment.LowerBoundGradient
                         };
                         currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs.Add(new Tuple<double, long>(ungroupedSegmentGroupPair.Key,
-                            currentSegment.Timestamp));
+                            currentSegment.StartTimestamp));
                     }
                 }
 
