@@ -41,88 +41,81 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
         /// <returns></returns>
         private static Dictionary<double, List<Segment>> GetFewestSegmentGroupsFromTimeSeries(List<Point> timeSeries, double epsilon)
         {
-            var segmentGroupList = new List<Dictionary<double, List<Segment>>>();
+            var timeSeriesSegmentCombinations = GetSegmentPossibilitiesForTimeSeries(timeSeries, epsilon);
 
-            for (var i = 0; i < timeSeries.Count; i++)
+            return new();
+        }
+
+        private static HashSet<Tuple<long, long, Segment>> GetSegmentPossibilitiesForTimeSeries(List<Point> timeSeries, double epsilon)
+        {
+            var segmentPossibilitySetComparer = new SegmentPossibilitySetComparer();
+            var segmentPossibilities = new HashSet<Tuple<long, long, Segment>>(segmentPossibilitySetComparer);
+
+            var currentStartPoint = timeSeries[0];
+
+            var currentQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentStartPoint.Value, epsilon);
+            var currentUpperBoundGradient = double.PositiveInfinity;
+            var currentLowerBoundGradient = double.NegativeInfinity;
+
+            var segmentStartTimestamp = timeSeries[0].Timestamp;
+            var segmentEndTimestamp = timeSeries[1].Timestamp;
+
+            for (var i = 0; i < timeSeries.Count - 1; i++)
             {
-                var currentPoint = timeSeries[i];
+                var nextPoint = timeSeries[i + 1];
+                var segmentCreationFinalized = false;
 
-                var currentQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentPoint.Value, epsilon);
-                var currentUpperBoundGradient = double.PositiveInfinity;
-                var currentLowerBoundGradient = double.NegativeInfinity;
-
-                var currentSegment = new Segment();
-
-                for (var j = i; j < timeSeries.Count - 1; j++)
+                // Use the point-slope form to check whether the next point's value is outside of the current upper and lower bounds.
+                if (nextPoint.Value > currentUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue + epsilon ||
+                    nextPoint.Value < currentLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue - epsilon)
                 {
-                    var nextPoint = timeSeries[j + 1];
+                    // If the next point is out of bounds, mark the segment creation as finalized.
+                    segmentCreationFinalized = true;
 
-                    var currentSegmentGroup = new Dictionary<double, List<Segment>>();
-                    var partialTimeSeries = new List<Point>();
-
-                    // Use the point-slope form to check whether the next point's value is outside of the current upper and lower bounds.
-                    if (nextPoint.Value > currentUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue + epsilon ||
-                        nextPoint.Value < currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
-                    {
-                        currentSegment.UpperBoundGradient = currentUpperBoundGradient;
-                        currentSegment.LowerBoundGradient = currentLowerBoundGradient;
-                        currentSegment.Timestamp = currentPoint.Timestamp;
-
-                        partialTimeSeries = timeSeries.Take(new Range(j + 1, timeSeries.Count)).ToList();
-                        currentSegmentGroup = GetFewestSegmentGroupsFromTimeSeries(partialTimeSeries, epsilon);
-
-                        if (!currentSegmentGroup.ContainsKey(currentQuantizedValue))
-                            currentSegmentGroup[currentQuantizedValue] = [];
-
-                        currentSegmentGroup[currentQuantizedValue].Add(currentSegment);
-                        segmentGroupList.Add(currentSegmentGroup);
-
-                        break;
-                    }
-                   
+                    // The next point cannot be included, so the end timestamp is the current point's timestamp.
+                    segmentEndTimestamp = timeSeries[i].Timestamp;
+                }
+                else
+                {
                     // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
-                    if (nextPoint.Value < currentUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
+                    if (nextPoint.Value < currentUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue - epsilon)
                         // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                        currentUpperBoundGradient = (nextPoint.Value - currentPoint.Value + epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
+                        currentUpperBoundGradient = (nextPoint.Value - currentStartPoint.Value + epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
 
                     // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                    if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
+                    if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue - epsilon)
                         // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                        currentLowerBoundGradient = (nextPoint.Value - currentPoint.Value - epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
+                        currentLowerBoundGradient = (nextPoint.Value - currentStartPoint.Value - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
 
-                    currentSegment.UpperBoundGradient = currentUpperBoundGradient;
-                    currentSegment.LowerBoundGradient = currentLowerBoundGradient;
-                    currentSegment.Timestamp = currentPoint.Timestamp;
-
-                    if (j < timeSeries.Count - 1)
-                    {
-                        partialTimeSeries = timeSeries.Take(new Range(j + 1, timeSeries.Count)).ToList();
-                        currentSegmentGroup = GetFewestSegmentGroupsFromTimeSeries(partialTimeSeries, epsilon);
-                    }
-
-                    if (!currentSegmentGroup.ContainsKey(currentQuantizedValue))
-                        currentSegmentGroup[currentQuantizedValue] = [];
-
-                    currentSegmentGroup[currentQuantizedValue].Add(currentSegment);
-                    segmentGroupList.Add(currentSegmentGroup);
+                    // The next point is within bounds, so the end timestamp for the segment is the next point's timestamp.
+                    segmentEndTimestamp = nextPoint.Timestamp;
                 }
-            }
 
-            var fewestNumberOfSegments = int.MaxValue;
-            Dictionary<double, List<Segment>> segmentGroupWithFewestSegments = [];
-            for (var i = 1; i < segmentGroupList.Count; i++)
-            {
-                var currentNumberOfSegments = 0;
-                foreach (var segmentGroupKeyValuePair in segmentGroupList[i])
+                var currentSegment = new Segment
                 {
-                    currentNumberOfSegments += segmentGroupKeyValuePair.Value.Count;
+                    LowerBoundGradient = currentLowerBoundGradient,
+                    UpperBoundGradient = currentUpperBoundGradient,
+                    Timestamp = currentStartPoint.Timestamp
+                };
+                var segmentInformation = new Tuple<long, long, Segment>(segmentStartTimestamp, segmentEndTimestamp, currentSegment);
+
+                segmentPossibilities.Add(segmentInformation);
+
+                if (i < timeSeries.Count - 2)
+                {
+                    var remainingTimeSeries = timeSeries.Take(new Range(i + 1, timeSeries.Count)).ToList();
+                    var remainingTimeSeriesSegmentPossibilities = GetSegmentPossibilitiesForTimeSeries(remainingTimeSeries, epsilon);
+
+                    segmentPossibilities = segmentPossibilities.Union(remainingTimeSeriesSegmentPossibilities).ToHashSet(segmentPossibilitySetComparer);
                 }
 
-                if (currentNumberOfSegments < fewestNumberOfSegments)
-                    segmentGroupWithFewestSegments = segmentGroupList[i];
+                // Check if segment creation is finalized, in which case all possible combinations for this time series have been found.
+                if (segmentCreationFinalized)
+                    return segmentPossibilities;
             }
 
-            return segmentGroupWithFewestSegments;
+            // The end of the time series is reached, so return all previously found combinations.
+            return segmentPossibilities;
         }
 
         /// <summary>

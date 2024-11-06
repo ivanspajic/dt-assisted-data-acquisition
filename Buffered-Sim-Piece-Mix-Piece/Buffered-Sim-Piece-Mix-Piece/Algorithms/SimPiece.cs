@@ -37,6 +37,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             return linearSegments;
         }
 
+        // TODO: needs to be fixed with respect to where segment creation continues from after a segment ends.
         private static Dictionary<double, List<Segment>> GetSegmentGroupsFromTimeSeries(List<Point> timeSeries, double epsilon)
         {
             var segmentGroups = new Dictionary<double, List<Segment>>();
