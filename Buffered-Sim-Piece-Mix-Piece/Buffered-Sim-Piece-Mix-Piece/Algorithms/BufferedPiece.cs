@@ -3,6 +3,7 @@ using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
 using Buffered_Sim_Piece_Mix_Piece.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,15 +42,21 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
         /// <returns></returns>
         private static Dictionary<double, List<Segment>> GetFewestSegmentGroupsFromTimeSeries(List<Point> timeSeries, double epsilon)
         {
-            var timeSeriesSegmentCombinations = GetSegmentPossibilitiesForTimeSeries(timeSeries, epsilon);
+            var timeSeriesSegmentCombinations = GetSegmentPossibilitiesForTimeSeries(timeSeries, epsilon).ToList();
 
-            return new();
+            // TODO: remember to update all of the algorithms to use the new segment model instead of Dictionaries with quantization values as keys.
+            // Recursively go through the collection from the start and call the inner method again with the respective ending timestamps.
+            // Upon a new segment, add the end timestamp to a list that is added to recursively.
+            // After all the segments were looped through and all the lists of all possible connections have been constructed, find the shortest one!
+            // Use the timestamps from the shortest list to filter out the segments to pass onto the next stage.
+
+            return new();            
         }
 
-        private static HashSet<Tuple<long, long, Segment>> GetSegmentPossibilitiesForTimeSeries(List<Point> timeSeries, double epsilon)
+        private static HashSet<Segment> GetSegmentPossibilitiesForTimeSeries(List<Point> timeSeries, double epsilon)
         {
-            var segmentPossibilitySetComparer = new SegmentPossibilitySetComparer();
-            var segmentPossibilities = new HashSet<Tuple<long, long, Segment>>(segmentPossibilitySetComparer);
+            var segmentPossibilitySetComparer = new FirstSecondItemSegmentComparer();
+            var segmentPossibilities = new HashSet<Segment>(segmentPossibilitySetComparer);
 
             var currentStartPoint = timeSeries[0];
 
@@ -95,11 +102,12 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 {
                     LowerBoundGradient = currentLowerBoundGradient,
                     UpperBoundGradient = currentUpperBoundGradient,
-                    Timestamp = currentStartPoint.Timestamp
+                    Timestamp = currentStartPoint.Timestamp,
+                    StartTimestamp = segmentStartTimestamp,
+                    EndTimestamp = segmentEndTimestamp
                 };
-                var segmentInformation = new Tuple<long, long, Segment>(segmentStartTimestamp, segmentEndTimestamp, currentSegment);
 
-                segmentPossibilities.Add(segmentInformation);
+                segmentPossibilities.Add(currentSegment);
 
                 if (i < timeSeries.Count - 2)
                 {
@@ -261,6 +269,19 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             return new Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>>(groupedLinearSegmentList,
                 halfGroupedLinearSegmentList,
                 ungroupedLinearSegmentList);
+        }
+
+        private class FirstSecondItemSegmentComparer : EqualityComparer<Segment>
+        {
+            public override bool Equals(Segment? x, Segment? y)
+            {
+                return x.StartTimestamp == y.StartTimestamp && x.EndTimestamp == y.EndTimestamp;
+            }
+
+            public override int GetHashCode([DisallowNull] Segment obj)
+            {
+                return (obj.StartTimestamp.ToString() + obj.EndTimestamp.ToString()).GetHashCode();
+            }
         }
     }
 }
