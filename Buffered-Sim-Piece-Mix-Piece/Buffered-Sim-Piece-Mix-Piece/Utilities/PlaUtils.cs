@@ -66,7 +66,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
             return timeSeriesSize / (compressedGroupedLinearSegmentsSize + compressedHalfGroupedLinearSegmentsSize + compressedUngroupedLinearSegmentsSize);
         }
 
-        public static double GetCompressionRatioForBufferedPiece(List<Point> timeSeries, 
+        public static double GetCompressionRatioForCustomPiece(List<Point> timeSeries, 
             Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedTimeSeries)
         {
             // A point can be represented with 1 byte for the timestamp + 8 bytes for the value.

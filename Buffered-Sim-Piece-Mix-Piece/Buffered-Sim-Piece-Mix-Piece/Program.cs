@@ -13,11 +13,14 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
         static void Main(string[] args)
         {
-            var bufferWindow = 10;
+            var bufferWindow = 20;
 
             var filenames = new string[]
             {
-                "Turbidity#16340 - Analog Sensors #0.csv"
+                "Turbidity#16340 - Analog Sensors #0.csv",
+                //"Abs Tilt - DCPS #122.csv",
+                //"Oxygen - SeaBird SBE #1111.csv",
+                //"Temperature - Temperature Sensor #1063.csv"
             };
 
             foreach (var filename in filenames)
@@ -70,18 +73,39 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
             epsilonPercentage = 0.5;
 
-            Console.WriteLine($"Data set: {name}, Algorithm: Buffered-Piece");
+            Console.WriteLine($"Data set: {name}, Algorithm: Custom-Piece (Longest Segments)");
             do
             {
-                var compressedTimeSeries = BufferedPiece.Compress(timeSeries, epsilonPercentage);
+                var compressedTimeSeries = CustomPiece.CompressWithLongestSegments(timeSeries, epsilonPercentage);
 
-                var compressionRatio = PlaUtils.GetCompressionRatioForBufferedPiece(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForCustomPiece(timeSeries, compressedTimeSeries);
 
                 Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
                 epsilonPercentage += epsilonPercentageSteps;
             }
             while (epsilonPercentage <= epsilonMaximum);
+
+            Console.WriteLine();
+            Console.WriteLine();
+
+            epsilonPercentage = 0.5;
+
+            Console.WriteLine($"Data set: {name}, Algorithm: Custom-Piece (Most Compressible Segments)");
+            do
+            {
+                var compressedTimeSeries = CustomPiece.CompressWithMostCompressibleSegments(timeSeries, epsilonPercentage);
+
+                var compressionRatio = PlaUtils.GetCompressionRatioForCustomPiece(timeSeries, compressedTimeSeries);
+
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
+
+                epsilonPercentage += epsilonPercentageSteps;
+            }
+            while (epsilonPercentage <= epsilonMaximum);
+
+            Console.WriteLine();
+            Console.WriteLine();
         }
     }
 }

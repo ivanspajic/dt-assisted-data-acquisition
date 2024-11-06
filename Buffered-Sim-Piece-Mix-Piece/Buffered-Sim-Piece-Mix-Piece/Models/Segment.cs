@@ -15,5 +15,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Models
         public double UpperBoundGradient { get; set; }
 
         public double LowerBoundGradient { get; set; }
+
+        public double QuantizedValue { get; set; }
     }
 }

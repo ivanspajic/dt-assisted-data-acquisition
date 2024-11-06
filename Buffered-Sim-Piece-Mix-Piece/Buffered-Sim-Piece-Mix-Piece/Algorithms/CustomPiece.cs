@@ -11,47 +11,58 @@ using System.Threading.Tasks;
 namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 {
     /// <summary>
-    /// Implements the Buffered-Piece algorithm.
+    /// Implements the Custom-Piece algorithm.
     /// </summary>
-    internal static class BufferedPiece
+    internal static class CustomPiece
     {
         /// <summary>
-        /// Performs lossy compression using the Buffered-Piece algorithm.
+        /// Performs lossy compression using the Custom-Piece algorithm with a focus on higher data accuracy via longer compressible segments.
         /// </summary>
         /// <param name="timeSeries"></param>
         /// <param name="epsilonPercentage"></param>
         /// <returns></returns>
-        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> Compress(List<Point> timeSeries, 
-            double epsilonPercentage)
+        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> CompressWithLongestSegments(List<Point> timeSeries, double epsilonPercentage)
         {
             if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
                 throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
 
             var epsilon = epsilonPercentage / 100;
 
-            var segmentGroups = GetFewestSegmentGroupsFromTimeSeries(timeSeries, epsilon);
+            var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
+            var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
+            var shortestSegmentPath = GetShortestSegmentPath(separateSegmentPaths);
+            var segmentGroups = GetGroupedSegmentsByQuantizedValue(shortestSegmentPath);
             var linearSegmentGroups = GetLinearSegmentGroupsFromSegmentGroups(segmentGroups);
 
             return linearSegmentGroups;
         }
 
         /// <summary>
-        /// Phase 1 of the algorithm.
+        /// Performs lossy compression using the Custom-Piece algorithm with a focus on higher data accuracy via longer compressible segments.
         /// </summary>
         /// <param name="timeSeries"></param>
         /// <param name="epsilonPercentage"></param>
         /// <returns></returns>
-        private static Dictionary<double, List<Segment>> GetFewestSegmentGroupsFromTimeSeries(List<Point> timeSeries, double epsilon)
+        /// <exception cref="ArgumentException"></exception>
+        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> CompressWithMostCompressibleSegments(List<Point> timeSeries, double epsilonPercentage)
         {
-            var possibleSegmentPaths = GetPossibleSegmentPathsForTimeSeries(timeSeries, epsilon);
+            if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
+                throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
 
-            return new();
+            var epsilon = epsilonPercentage / 100;
+
+            var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
+            var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
+
+            var linearSegmentGroups = GetLinearSegmentGroupsFromMostCompressibleSegmentPath(timeSeries, separateSegmentPaths);
+
+            return linearSegmentGroups;
         }
 
-        private static HashSet<SegmentPath> GetPossibleSegmentPathsForTimeSeries(List<Point> timeSeries, double epsilon)
+        private static HashSet<SegmentPath> GetSegmentPathTreeForTimeSeries(List<Point> timeSeries, double epsilon)
         {
             var segmentPathEqualityComparer = new SegmentPathEqualityComparer();
-            var possibleSegmentPaths = new HashSet<SegmentPath>(segmentPathEqualityComparer);
+            var segmentPathTree = new HashSet<SegmentPath>(segmentPathEqualityComparer);
 
             var currentStartPoint = timeSeries[0];
 
@@ -82,8 +93,10 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         currentLowerBoundGradient = (nextPoint.Value - currentStartPoint.Value - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
                 }
 
+                // Find the right point for the start of the remainder of the time series. In case of the segment having been finalized, the next point is out
+                // of bounds, and thus the next segment must start creation from the current index. Otherwise, the next point is within bounds, and the next
+                // segment can begin creation at i + 1.
                 var continuedTimeSeriesIndex = i;
-
                 if (!segmentCreationFinalized)
                     continuedTimeSeriesIndex = i + 1;
 
@@ -92,7 +105,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     LowerBoundGradient = currentLowerBoundGradient,
                     UpperBoundGradient = currentUpperBoundGradient,
                     StartTimestamp = currentStartPoint.Timestamp,
-                    EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp
+                    EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp,
+                    QuantizedValue = currentQuantizedValue
                 };
 
                 var possibleSegmentPath = new SegmentPath
@@ -100,23 +114,132 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     Segment = currentSegment
                 };
 
+                // Check if the time series has been processed fully.
                 if (i < timeSeries.Count - 1)
                 {
+                    // In case of remaining time series points, call this method with the remainder and add the output to the possible paths from the current
+                    // segment.
                     var remainingTimeSeries = timeSeries.Take(new Range(continuedTimeSeriesIndex, timeSeries.Count)).ToList();
-                    var remainingTimeSeriesPossibleSegmentPaths = GetPossibleSegmentPathsForTimeSeries(remainingTimeSeries, epsilon);
+                    var remainingTimeSeriesPossibleSegmentPaths = GetSegmentPathTreeForTimeSeries(remainingTimeSeries, epsilon);
 
                     possibleSegmentPath.PossiblePaths = remainingTimeSeriesPossibleSegmentPaths;
                 }
 
-                possibleSegmentPaths.Add(possibleSegmentPath);
+                segmentPathTree.Add(possibleSegmentPath);
 
                 // Check if segment creation is finalized, in which case all possible combinations for this time series have been found.
                 if (segmentCreationFinalized)
-                    return possibleSegmentPaths;
+                    return segmentPathTree;
             }
 
             // The end of the time series is reached, so return all previously found combinations.
-            return possibleSegmentPaths;
+            return segmentPathTree;
+        }
+
+        /// <summary>
+        /// Returns the recorded separate paths from the root node to every leaf node in the segment path tree.
+        /// </summary>
+        /// <param name="segmentPaths"></param>
+        /// <returns></returns>
+        private static List<List<Segment>> GetSeparateSegmentPathsFromTree(List<SegmentPath> segmentPaths)
+        {
+            var collectionOfPaths = new List<List<Segment>>();
+
+            foreach (var segmentPath in segmentPaths)
+            {
+                if (segmentPath.PossiblePaths.Count > 0)
+                {
+                    var collectionOfInnerPaths = GetSeparateSegmentPathsFromTree(segmentPath.PossiblePaths.ToList());
+
+                    foreach (var innerPath in collectionOfInnerPaths)
+                    {
+                        var localPath = new List<Segment>()
+                        {
+                            segmentPath.Segment
+                        };
+
+                        localPath.AddRange(innerPath);
+                        collectionOfPaths.Add(localPath);
+                    }
+                }
+                else
+                {
+                    var localPath = new List<Segment>()
+                    {
+                        segmentPath.Segment
+                    };
+
+                    collectionOfPaths.Add(localPath);
+                }
+            }
+
+            return collectionOfPaths;
+        }
+
+        /// <summary>
+        /// Gets the segment path with the fewest segments, thereby guaranteeing longer segments on average.
+        /// </summary>
+        /// <param name="separateSegmentPaths"></param>
+        /// <returns></returns>
+        private static List<Segment> GetShortestSegmentPath(List<List<Segment>> separateSegmentPaths)
+        {
+            var shortestSegmentPath = separateSegmentPaths[0];
+
+            for (var i = 0; i < separateSegmentPaths.Count; i++)
+                if (separateSegmentPaths[i].Count < shortestSegmentPath.Count)
+                    shortestSegmentPath = separateSegmentPaths[i];
+
+            return shortestSegmentPath;
+        }
+
+        /// <summary>
+        /// Groups the segments by their quantized value for phase 2 processing.
+        /// </summary>
+        /// <param name="segments"></param>
+        /// <returns></returns>
+        private static Dictionary<double, List<Segment>> GetGroupedSegmentsByQuantizedValue(List<Segment> segments)
+        {
+            var segmentGroups = new Dictionary<double, List<Segment>>();
+
+            foreach (var segment in segments)
+            {
+                if (!segmentGroups.ContainsKey(segment.QuantizedValue))
+                    segmentGroups[segment.QuantizedValue] = [];
+
+                segmentGroups[segment.QuantizedValue].Add(segment);
+            }
+
+            return segmentGroups;
+        }
+
+        /// <summary>
+        /// Performs phase 2 on all possible segment paths and returns the most compressible.
+        /// </summary>
+        /// <param name="timeSeries"></param>
+        /// <param name="separateSegmentPaths"></param>
+        /// <returns></returns>
+        private static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> GetLinearSegmentGroupsFromMostCompressibleSegmentPath(List<Point> timeSeries, List<List<Segment>> separateSegmentPaths)
+        {
+            Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> smallestLinearSegmentGroups = null!;
+
+            foreach (var segmentPath in separateSegmentPaths)
+            {
+                var segmentGroups = GetGroupedSegmentsByQuantizedValue(segmentPath);
+                var currentLinearSegmentGroups = GetLinearSegmentGroupsFromSegmentGroups(segmentGroups);
+
+                if (smallestLinearSegmentGroups == null)
+                    smallestLinearSegmentGroups = currentLinearSegmentGroups;
+                else
+                {
+                    var currentIterationCompressionRatio = PlaUtils.GetCompressionRatioForCustomPiece(timeSeries, currentLinearSegmentGroups);
+                    var currentBiggestCompressionRatio = PlaUtils.GetCompressionRatioForCustomPiece(timeSeries, smallestLinearSegmentGroups);
+
+                    if (currentIterationCompressionRatio > currentBiggestCompressionRatio)
+                        smallestLinearSegmentGroups = currentLinearSegmentGroups;
+                }
+            }
+
+            return smallestLinearSegmentGroups;
         }
 
         /// <summary>
