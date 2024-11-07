@@ -28,15 +28,18 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 
             var epsilon = epsilonPercentage / 100;
 
-            // Phase 1 of the algorithm.
             var segmentGroups = GetSegmentGroupsFromTimeSeries(timeSeries, epsilon);
-
-            // Phase 2 of the algorithm.
             var linearSegments = GetLinearSegmentsFromSegmentGroups(segmentGroups);
 
             return linearSegments;
         }
 
+        /// <summary>
+        /// Phase 1 of the algorithm.
+        /// </summary>
+        /// <param name="timeSeries"></param>
+        /// <param name="epsilon"></param>
+        /// <returns></returns>
         private static Dictionary<double, List<Segment>> GetSegmentGroupsFromTimeSeries(List<Point> timeSeries, double epsilon)
         {
             var segmentGroups = new Dictionary<double, List<Segment>>();
@@ -64,28 +67,27 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     {
                         LowerBoundGradient = currentLowerBoundGradient,
                         UpperBoundGradient = currentUpperBoundGradient,
-                        Timestamp = currentPoint.Timestamp
+                        StartTimestamp = currentPoint.Timestamp,
+                        EndTimestamp = timeSeries[i].Timestamp
                     });
 
                     // Reset before continuing.
-                    currentPoint = nextPoint;
+                    currentPoint = timeSeries[i];
 
                     currentQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentPoint.Value, epsilon);
                     currentUpperBoundGradient = double.PositiveInfinity;
                     currentLowerBoundGradient = double.NegativeInfinity;
                 }
-                else
-                {
-                    // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
-                    if (nextPoint.Value < currentUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
-                        // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                        currentUpperBoundGradient = (nextPoint.Value - currentPoint.Value + epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
 
-                    // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                    if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
-                        // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                        currentLowerBoundGradient = (nextPoint.Value - currentPoint.Value - epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
-                }
+                // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
+                if (nextPoint.Value < currentUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
+                    // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
+                    currentUpperBoundGradient = (nextPoint.Value - currentPoint.Value + epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
+
+                // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
+                if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
+                    // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
+                    currentLowerBoundGradient = (nextPoint.Value - currentPoint.Value - epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
             }
 
             // Add the segment still under creation at the end of the time series.
@@ -96,12 +98,18 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             {
                 LowerBoundGradient = currentLowerBoundGradient,
                 UpperBoundGradient = currentUpperBoundGradient,
-                Timestamp = currentPoint.Timestamp
+                StartTimestamp = currentPoint.Timestamp,
+                EndTimestamp = timeSeries[^1].Timestamp
             });
 
             return segmentGroups;
         }
 
+        /// <summary>
+        /// Phase 2 of the algorithm.
+        /// </summary>
+        /// <param name="segmentGroups"></param>
+        /// <returns></returns>
         private static List<GroupedLinearSegment> GetLinearSegmentsFromSegmentGroups(Dictionary<double, List<Segment>> segmentGroups)
         {
             var linearSegmentList = new List<GroupedLinearSegment>();
@@ -126,7 +134,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         // In case of an overlap, tighten the upper and lower bounds further.
                         currentLinearSegment.UpperBoundGradient = Math.Min(currentLinearSegment.UpperBoundGradient, currentSegment.UpperBoundGradient);
                         currentLinearSegment.LowerBoundGradient = Math.Max(currentLinearSegment.LowerBoundGradient, currentSegment.LowerBoundGradient);
-                        currentLinearSegment.Timestamps.Add(currentSegment.Timestamp);
+                        currentLinearSegment.Timestamps.Add(currentSegment.StartTimestamp);
                     }
                     else
                     {
