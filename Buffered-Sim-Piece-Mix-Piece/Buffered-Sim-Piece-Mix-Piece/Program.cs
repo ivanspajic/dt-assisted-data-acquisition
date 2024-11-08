@@ -13,14 +13,16 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
         static void Main(string[] args)
         {
-            var bufferWindow = 20;
+            var bufferWindow = 10;
 
             var filenames = new string[]
             {
                 "Turbidity#16340 - Analog Sensors #0.csv",
-                //"Abs Tilt - DCPS #122.csv",
-                //"Oxygen - SeaBird SBE #1111.csv",
-                //"Temperature - Temperature Sensor #1063.csv"
+                "Pressure - Pressure Sensor #1955.csv",
+                "Salinity - Conductivity Sensor #41.csv",
+                "AirSaturation - Oxygen Optode #754.csv",
+                "Chlorophyll#2103755 - Analog Sensors #0.csv",
+                "Density - Conductivity Sensor #41.csv"
             };
 
             foreach (var filename in filenames)
@@ -37,39 +39,39 @@ namespace Buffered_Sim_Piece_Mix_Piece
             var epsilonPercentageSteps = 0.5;
             var epsilonMaximum = 5;
 
-            //Console.WriteLine($"Data set: {name}, Algorithm: Sim-Piece");
-            //do
-            //{
-            //    var compressedTimeSeries = SimPiece.Compress(timeSeries, epsilonPercentage);
+            Console.WriteLine($"Data set: {name}, Algorithm: Sim-Piece");
+            do
+            {
+                var compressedTimeSeries = SimPiece.Compress(timeSeries, epsilonPercentage);
 
-            //    var compressionRatio = PlaUtils.GetCompressionRatioForSimPiece(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForSimPiece(timeSeries, compressedTimeSeries);
 
-            //    Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
-            //    epsilonPercentage += epsilonPercentageSteps;
-            //}
-            //while (epsilonPercentage <= epsilonMaximum);
+                epsilonPercentage += epsilonPercentageSteps;
+            }
+            while (epsilonPercentage <= epsilonMaximum);
 
-            //Console.WriteLine();
-            //Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
 
-            //epsilonPercentage = 0.5;
+            epsilonPercentage = 0.5;
 
-            //Console.WriteLine($"Data set: {name}, Algorithm: Mix-Piece");
-            //do
-            //{
-            //    var compressedTimeSeries = MixPiece.Compress(timeSeries, epsilonPercentage);
+            Console.WriteLine($"Data set: {name}, Algorithm: Mix-Piece");
+            do
+            {
+                var compressedTimeSeries = MixPiece.Compress(timeSeries, epsilonPercentage);
 
-            //    var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
-            //    Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
-            //    epsilonPercentage += epsilonPercentageSteps;
-            //}
-            //while (epsilonPercentage <= epsilonMaximum);
+                epsilonPercentage += epsilonPercentageSteps;
+            }
+            while (epsilonPercentage <= epsilonMaximum);
 
-            //Console.WriteLine();
-            //Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
 
             epsilonPercentage = 0.5;
 

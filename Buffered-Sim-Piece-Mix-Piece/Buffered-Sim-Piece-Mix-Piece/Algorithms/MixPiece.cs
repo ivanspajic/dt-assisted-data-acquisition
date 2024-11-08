@@ -102,7 +102,9 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                             LowerBoundGradient = currentFloorLowerBoundGradient,
                             UpperBoundGradient = currentFloorUpperBoundGradient,
                             StartTimestamp = currentPoint.Timestamp,
-                            EndTimestamp = timeSeries[i].Timestamp
+                            EndTimestamp = timeSeries[i].Timestamp,
+                            QuantizedValue = currentFloorQuantizedValue,
+                            Type = "Floor"
                         });
                     }
                     else
@@ -115,7 +117,9 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                             LowerBoundGradient = currentCeilingLowerBoundGradient,
                             UpperBoundGradient = currentCeilingUpperBoundGradient,
                             StartTimestamp = currentPoint.Timestamp,
-                            EndTimestamp = timeSeries[i].Timestamp
+                            EndTimestamp = timeSeries[i].Timestamp,
+                            QuantizedValue = currentCeilingQuantizedValue,
+                            Type = "Ceiling"
                         });
                     }
 
@@ -166,7 +170,9 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     LowerBoundGradient = currentFloorLowerBoundGradient,
                     UpperBoundGradient = currentFloorUpperBoundGradient,
                     StartTimestamp = currentPoint.Timestamp,
-                    EndTimestamp = timeSeries[^1].Timestamp
+                    EndTimestamp = timeSeries[^1].Timestamp,
+                    QuantizedValue = currentFloorQuantizedValue,
+                    Type = "Floor"
                 });
             }
             else
@@ -179,7 +185,9 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     LowerBoundGradient = currentCeilingLowerBoundGradient,
                     UpperBoundGradient = currentCeilingUpperBoundGradient,
                     StartTimestamp = currentPoint.Timestamp,
-                    EndTimestamp = timeSeries[^1].Timestamp
+                    EndTimestamp = timeSeries[^1].Timestamp,
+                    QuantizedValue = currentCeilingQuantizedValue,
+                    Type = "Ceiling"
                 });
             }
 
@@ -298,6 +306,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         {
                             ungroupedLinearSegmentList.Add(new UngroupedLinearSegment
                             {
+                                UpperBoundGradient = currentHalfGroupedLinearSegment.UpperBoundGradient,
+                                LowerBoundGradient = currentHalfGroupedLinearSegment.LowerBoundGradient,
                                 ValueTimestampPair = new Tuple<double, long>(currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item1,
                                     currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item2)
                             });
@@ -320,6 +330,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 {
                     ungroupedLinearSegmentList.Add(new UngroupedLinearSegment
                     {
+                        UpperBoundGradient = currentHalfGroupedLinearSegment.UpperBoundGradient,
+                        LowerBoundGradient = currentHalfGroupedLinearSegment.LowerBoundGradient,
                         ValueTimestampPair = new Tuple<double, long>(currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item1,
                             currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item2)
                     });

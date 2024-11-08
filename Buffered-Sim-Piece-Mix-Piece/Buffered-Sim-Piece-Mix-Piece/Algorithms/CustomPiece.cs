@@ -66,69 +66,156 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 
             var currentStartPoint = timeSeries[0];
 
-            var currentQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentStartPoint.Value, epsilon);
-            var currentUpperBoundGradient = double.PositiveInfinity;
-            var currentLowerBoundGradient = double.NegativeInfinity;
+            var currentFloorQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentStartPoint.Value, epsilon);
+            var currentCeilingQuantizedValue = PlaUtils.GetCeilingQuantizedValue(currentStartPoint.Value, epsilon);
+            var currentFloorUpperBoundGradient = double.PositiveInfinity;
+            var currentFloorLowerBoundGradient = double.NegativeInfinity;
+            var currentCeilingUpperBoundGradient = double.PositiveInfinity;
+            var currentCeilingLowerBoundGradient = double.NegativeInfinity;
+
+            // Used for checking if segments can be extended to include more data points in subsequent iterations.
+            var floorSegmentCreationFinalized = false;
+            var ceilingSegmentCreationFinalized = false;
+
+            // Used for keeping track of segments already added to the possible segment paths.
+            var floorSegmentAdded = false;
+            var ceilingSegmentAdded = false;
 
             for (var i = 0; i < timeSeries.Count - 1; i++)
             {
                 var nextPoint = timeSeries[i + 1];
-                var segmentCreationFinalized = false;
 
-                // Use the point-slope form to check whether the next point's value is outside of the current upper and lower bounds.
-                if (nextPoint.Value > currentUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue + epsilon ||
-                    nextPoint.Value < currentLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue - epsilon)
-                    // If the next point is out of bounds, mark the segment creation as finalized.
-                    segmentCreationFinalized = true;
-                else
+                if (!floorSegmentCreationFinalized)
                 {
-                    // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
-                    if (nextPoint.Value < currentUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue - epsilon)
-                        // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                        currentUpperBoundGradient = (nextPoint.Value - currentStartPoint.Value + epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                    // Use the point-slope form to check whether the next point's value is outside of the current floor-based upper and lower bounds.
+                    if (nextPoint.Value > currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue + epsilon ||
+                        nextPoint.Value < currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                        // If the next point is out of bounds, mark the floor-based segment creation as finalized.
+                        floorSegmentCreationFinalized = true;
+                    else
+                    {
+                        // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
+                        if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                            // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
+                            currentFloorUpperBoundGradient = (nextPoint.Value - currentFloorQuantizedValue + epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
 
-                    // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                    if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentQuantizedValue - epsilon)
-                        // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                        currentLowerBoundGradient = (nextPoint.Value - currentStartPoint.Value - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                        // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
+                        if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue + epsilon)
+                            // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
+                            currentFloorLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+
+                        floorSegmentAdded = false;
+                    }
                 }
 
-                // Find the right point for the start of the remainder of the time series. In case of the segment having been finalized, the next point is out
-                // of bounds, and thus the next segment must start creation from the current index. Otherwise, the next point is within bounds, and the next
-                // segment can begin creation at i + 1.
-                var continuedTimeSeriesIndex = i;
-                if (!segmentCreationFinalized)
-                    continuedTimeSeriesIndex = i + 1;
-
-                var currentSegment = new Segment
+                if (!ceilingSegmentCreationFinalized)
                 {
-                    LowerBoundGradient = currentLowerBoundGradient,
-                    UpperBoundGradient = currentUpperBoundGradient,
-                    StartTimestamp = currentStartPoint.Timestamp,
-                    EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp,
-                    QuantizedValue = currentQuantizedValue
-                };
+                    // Use the point-slope form to check whether the next point's value is outside of the current ceiling-based upper and lower bounds.
+                    if (nextPoint.Value > currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue + epsilon ||
+                        nextPoint.Value < currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                        // If the next point is out of bounds, mark the ceiling-based segment creation as finalized.
+                        ceilingSegmentCreationFinalized = true;
+                    else
+                    {
+                        // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
+                        if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                            // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
+                            currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
 
-                var possibleSegmentPath = new SegmentPath
-                {
-                    Segment = currentSegment
-                };
+                        // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
+                        if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue + epsilon)
+                            // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
+                            currentCeilingLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
 
-                // Check if the time series has been processed fully.
-                if (i < timeSeries.Count - 1)
-                {
-                    // In case of remaining time series points, call this method with the remainder and add the output to the possible paths from the current
-                    // segment.
-                    var remainingTimeSeries = timeSeries.Take(new Range(continuedTimeSeriesIndex, timeSeries.Count)).ToList();
-                    var remainingTimeSeriesPossibleSegmentPaths = GetSegmentPathTreeForTimeSeries(remainingTimeSeries, epsilon);
-
-                    possibleSegmentPath.PossiblePaths = remainingTimeSeriesPossibleSegmentPaths;
+                        ceilingSegmentAdded = false;
+                    }
                 }
 
-                segmentPathTree.Add(possibleSegmentPath);
+                if (!floorSegmentAdded)
+                {
+                    // Find the right point for the start of the remainder of the time series. In case of the segment having been finalized, the next point is out
+                    // of bounds, and thus the next segment must start creation from the current index. Otherwise, the next point is within bounds, and the next
+                    // segment can begin creation at i + 1.
+                    var continuedTimeSeriesIndex = i;
+                    if (!floorSegmentCreationFinalized)
+                        continuedTimeSeriesIndex = i + 1;
 
-                // Check if segment creation is finalized, in which case all possible combinations for this time series have been found.
-                if (segmentCreationFinalized)
+                    var currentFloorSegment = new Segment
+                    {
+                        LowerBoundGradient = currentFloorLowerBoundGradient,
+                        UpperBoundGradient = currentFloorUpperBoundGradient,
+                        StartTimestamp = currentStartPoint.Timestamp,
+                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp,
+                        QuantizedValue = currentFloorQuantizedValue,
+                        Type = "Floor"
+                    };
+
+                    var possibleFloorSegmentPath = new SegmentPath
+                    {
+                        Segment = currentFloorSegment
+                    };
+
+                    // Check if the time series has been processed fully.
+                    if (i < timeSeries.Count - 1)
+                    {
+                        // In case of remaining time series points, call this method with the remainder and add the output to the possible paths from the current
+                        // segment.
+                        var remainingTimeSeries = timeSeries.Take(new Range(continuedTimeSeriesIndex, timeSeries.Count)).ToList();
+                        var remainingTimeSeriesPossibleSegmentPaths = GetSegmentPathTreeForTimeSeries(remainingTimeSeries, epsilon);
+                        //var remainingTimeSeriesPossibleSegmentPaths = new HashSet<SegmentPath>();
+
+                        possibleFloorSegmentPath.PossiblePaths = remainingTimeSeriesPossibleSegmentPaths;
+                    }
+
+                    segmentPathTree.Add(possibleFloorSegmentPath);
+
+                    floorSegmentAdded = true;
+                }
+
+                if (!ceilingSegmentAdded)
+                {
+                    // Find the right point for the start of the remainder of the time series. In case of the segment having been finalized, the next point is out
+                    // of bounds, and thus the next segment must start creation from the current index. Otherwise, the next point is within bounds, and the next
+                    // segment can begin creation at i + 1.
+                    var continuedTimeSeriesIndex = i;
+                    if (!ceilingSegmentCreationFinalized)
+                        continuedTimeSeriesIndex = i + 1;
+
+                    var currentCeilingSegment = new Segment
+                    {
+                        LowerBoundGradient = currentCeilingLowerBoundGradient,
+                        UpperBoundGradient = currentCeilingUpperBoundGradient,
+                        StartTimestamp = currentStartPoint.Timestamp,
+                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp,
+                        QuantizedValue = currentCeilingQuantizedValue,
+                        Type = "Ceiling"
+                    };
+
+                    var possibleCeilingSegmentPath = new SegmentPath
+                    {
+                        Segment = currentCeilingSegment
+                    };
+
+                    // Check if the time series has been processed fully.
+                    if (i < timeSeries.Count - 1)
+                    {
+                        // In case of remaining time series points, call this method with the remainder and add the output to the possible paths from the current
+                        // segment.
+                        var remainingTimeSeries = timeSeries.Take(new Range(continuedTimeSeriesIndex, timeSeries.Count)).ToList();
+                        var remainingTimeSeriesPossibleSegmentPaths = GetSegmentPathTreeForTimeSeries(remainingTimeSeries, epsilon);
+                        //var remainingTimeSeriesPossibleSegmentPaths = new HashSet<SegmentPath>();
+
+                        possibleCeilingSegmentPath.PossiblePaths = remainingTimeSeriesPossibleSegmentPaths;
+                    }
+
+                    segmentPathTree.Add(possibleCeilingSegmentPath);
+
+                    ceilingSegmentAdded = true;
+                }
+
+                // Check if both floor-based and ceiling-based segment creation is finalized, in which case all possible combinations for this time series have
+                // been found.
+                if (floorSegmentCreationFinalized && ceilingSegmentCreationFinalized)
                     return segmentPathTree;
             }
 
@@ -354,6 +441,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         {
                             ungroupedLinearSegmentList.Add(new UngroupedLinearSegment
                             {
+                                UpperBoundGradient = currentHalfGroupedLinearSegment.UpperBoundGradient,
+                                LowerBoundGradient = currentHalfGroupedLinearSegment.LowerBoundGradient,
                                 ValueTimestampPair = new Tuple<double, long>(currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item1,
                                     currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item2)
                             });
@@ -376,6 +465,8 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 {
                     ungroupedLinearSegmentList.Add(new UngroupedLinearSegment
                     {
+                        UpperBoundGradient = currentHalfGroupedLinearSegment.UpperBoundGradient,
+                        LowerBoundGradient = currentHalfGroupedLinearSegment.LowerBoundGradient,
                         ValueTimestampPair = new Tuple<double, long>(currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item1,
                             currentHalfGroupedLinearSegment.QuantizedValueTimestampPairs[0].Item2)
                     });
@@ -391,12 +482,14 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
         {
             public override bool Equals(SegmentPath? x, SegmentPath? y)
             {
-                return x.Segment.StartTimestamp == y.Segment.StartTimestamp && x.Segment.EndTimestamp == y.Segment.EndTimestamp;
+                return x.Segment.StartTimestamp == y.Segment.StartTimestamp &&
+                    x.Segment.EndTimestamp == y.Segment.EndTimestamp &&
+                    x.Segment.QuantizedValue == y.Segment.QuantizedValue;
             }
 
             public override int GetHashCode([DisallowNull] SegmentPath obj)
             {
-                return (obj.Segment.StartTimestamp.ToString() + obj.Segment.EndTimestamp.ToString()).GetHashCode();
+                return (obj.Segment.StartTimestamp.ToString() + obj.Segment.EndTimestamp.ToString() + obj.Segment.QuantizedValue).GetHashCode();
             }
         }
     }
