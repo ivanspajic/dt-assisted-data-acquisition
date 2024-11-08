@@ -1,17 +1,12 @@
 ﻿using Buffered_Sim_Piece_Mix_Piece.Models;
 using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
 using Buffered_Sim_Piece_Mix_Piece.Utilities;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 {
     /// <summary>
-    /// Implements the Custom-Piece algorithm.
+    /// Implements Custom-Piece based on Mix-Piece with phase 1 (segment construction) changed.
     /// </summary>
     internal static class CustomPiece
     {

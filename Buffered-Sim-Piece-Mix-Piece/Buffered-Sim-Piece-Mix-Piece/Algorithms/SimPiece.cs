@@ -1,11 +1,6 @@
 ﻿using Buffered_Sim_Piece_Mix_Piece.Models;
 using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
 using Buffered_Sim_Piece_Mix_Piece.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 {
@@ -32,6 +27,17 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             var linearSegments = GetLinearSegmentsFromSegmentGroups(segmentGroups);
 
             return linearSegments;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="compressedTimeSeries"></param>
+        /// <param name="epsilonPercentage"></param>
+        /// <returns></returns>
+        public static List<Point> Decompress(List<GroupedLinearSegment> compressedTimeSeries, double epsilonPercentage)
+        {
+            
         }
 
         /// <summary>
@@ -82,12 +88,12 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
                 if (nextPoint.Value < currentUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
                     // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                    currentUpperBoundGradient = (nextPoint.Value - currentPoint.Value + epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
+                    currentUpperBoundGradient = (nextPoint.Value - currentQuantizedValue + epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
 
                 // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
                 if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
                     // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                    currentLowerBoundGradient = (nextPoint.Value - currentPoint.Value - epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
+                    currentLowerBoundGradient = (nextPoint.Value - currentQuantizedValue - epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
             }
 
             // Add the segment still under creation at the end of the time series.
