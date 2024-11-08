@@ -21,7 +21,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
                 throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
 
-            var epsilon = epsilonPercentage / 100;
+            var epsilon = GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
             var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
             var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
@@ -44,7 +44,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
                 throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
 
-            var epsilon = epsilonPercentage / 100;
+            var epsilon = GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
             var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
             var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
@@ -54,6 +54,32 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             return linearSegmentGroups;
         }
 
+        /// <summary>
+        /// Gets the epsilon relative to the maximum and minimum values in the time series.
+        /// </summary>
+        /// <param name="timeSeries"></param>
+        /// <param name="epsilonPercentage"></param>
+        /// <returns></returns>
+        private static double GetEpsilonForTimeSeries(List<Point> timeSeries, double epsilonPercentage)
+        {
+            var maximumValue = double.NegativeInfinity;
+            var minimumValue = double.PositiveInfinity;
+
+            foreach (var point in timeSeries)
+            {
+                maximumValue = Math.Max(maximumValue, point.Value);
+                minimumValue = Math.Min(minimumValue, point.Value);
+            }
+
+            return (maximumValue - minimumValue) * (epsilonPercentage / 100);
+        }
+
+        /// <summary>
+        /// Creates a tree of all possible segment combinations from the input time series.
+        /// </summary>
+        /// <param name="timeSeries"></param>
+        /// <param name="epsilon"></param>
+        /// <returns></returns>
         private static HashSet<SegmentPath> GetSegmentPathTreeForTimeSeries(List<Point> timeSeries, double epsilon)
         {
             var segmentPathEqualityComparer = new SegmentPathEqualityComparer();
@@ -338,7 +364,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             {
                 var currentGroupedLinearSegment = new GroupedLinearSegment([])
                 {
-                    QuantizedOriginValue = segmentGroupPair.Key,
+                    QuantizedValue = segmentGroupPair.Key,
                     UpperBoundGradient = double.PositiveInfinity,
                     LowerBoundGradient = double.NegativeInfinity
                 };
@@ -377,7 +403,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         // Reset the new group creation with the current segment's information.
                         currentGroupedLinearSegment = new GroupedLinearSegment([])
                         {
-                            QuantizedOriginValue = segmentGroupPair.Key,
+                            QuantizedValue = segmentGroupPair.Key,
                             UpperBoundGradient = currentSegment.UpperBoundGradient,
                             LowerBoundGradient = currentSegment.LowerBoundGradient
                         };
@@ -473,6 +499,9 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                 ungroupedLinearSegmentList);
         }
 
+        /// <summary>
+        /// Used for equality comparisons during segment path tree construction.
+        /// </summary>
         private class SegmentPathEqualityComparer : EqualityComparer<SegmentPath>
         {
             public override bool Equals(SegmentPath? x, SegmentPath? y)

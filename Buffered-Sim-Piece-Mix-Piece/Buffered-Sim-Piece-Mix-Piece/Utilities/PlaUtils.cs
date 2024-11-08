@@ -23,6 +23,16 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
                 return 0;
         }
 
+        public static int CompareSegmentsByStartTimestamp(Segment x, Segment y)
+        {
+            if (x.StartTimestamp < y.StartTimestamp)
+                return -1;
+            else if (x.StartTimestamp > y.StartTimestamp)
+                return 1;
+            else
+                return 0;
+        }
+
         public static double GetFloorQuantizedValue(double pointValue, double epsilon)
         {
             return Math.Floor(pointValue / epsilon) * epsilon;
