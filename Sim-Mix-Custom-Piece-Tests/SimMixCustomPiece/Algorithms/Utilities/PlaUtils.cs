@@ -1,12 +1,13 @@
-﻿using Buffered_Sim_Piece_Mix_Piece.Models;
-using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
+﻿using SimMixCustomPiece.Models;
+using SimMixCustomPiece.Models.LinearSegments;
 
-namespace Buffered_Sim_Piece_Mix_Piece.Utilities
+namespace SimMixCustomPiece.Algorithms.Utilities
 {
     /// <summary>
-    /// Offers a few different algorithms for performing lossy compression with Piece-wise Linear Approximation.
+    /// Contains utilities for PLA-based lossy compression as well as shared functionality of the Sim-, Mix-, and Custom-Piece
+    /// algorithms.
     /// </summary>
-    internal static class PlaUtils
+    public static class PlaUtils
     {
         private const int ByteSize = sizeof(byte);
         private const int TimestampSize = ByteSize;
@@ -30,7 +31,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
                 minimumValue = Math.Min(minimumValue, point.Value);
             }
 
-            return (maximumValue - minimumValue) * (epsilonPercentage / 100);
+            return (maximumValue - minimumValue) * epsilonPercentage / 100;
         }
 
         /// <summary>
@@ -98,7 +99,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
             var reconstructedTimeSeries = new List<Point>();
 
             // Sort the segments by their starting timestamp.
-            segments.Sort(PlaUtils.CompareSegmentsByStartTimestamp);
+            segments.Sort(CompareSegmentsByStartTimestamp);
 
             // Add the first point to simplify later segment iteration.
             reconstructedTimeSeries.Add(new Point

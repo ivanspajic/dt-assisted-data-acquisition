@@ -1,13 +1,13 @@
-﻿using Buffered_Sim_Piece_Mix_Piece.Models;
-using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
-using Buffered_Sim_Piece_Mix_Piece.Utilities;
+﻿using SimMixCustomPiece.Algorithms.Utilities;
+using SimMixCustomPiece.Models;
+using SimMixCustomPiece.Models.LinearSegments;
 
-namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
+namespace SimMixCustomPiece.Algorithms
 {
     /// <summary>
     /// Implements the Sim-Piece Piece-wise Linear Approximation algorithm.
     /// </summary>
-    internal static class SimPiece
+    public static class SimPiece
     {
         /// <summary>
         /// Performs lossy compression using the Sim-Piece algorithm.
@@ -94,7 +94,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     currentUpperBoundGradient = (nextPoint.Value - currentQuantizedValue + epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
 
                 // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
+                if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue + epsilon)
                     // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
                     currentLowerBoundGradient = (nextPoint.Value - currentQuantizedValue - epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
             }
@@ -153,9 +153,10 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         currentLinearSegment = new GroupedLinearSegment([])
                         {
                             QuantizedValue = segmentGroupPair.Key,
-                            UpperBoundGradient = double.PositiveInfinity,
-                            LowerBoundGradient = double.NegativeInfinity
+                            UpperBoundGradient = currentSegment.UpperBoundGradient,
+                            LowerBoundGradient = currentSegment.LowerBoundGradient
                         };
+                        currentLinearSegment.Timestamps.Add(currentSegment.StartTimestamp);
                     }
                 }
 

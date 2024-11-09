@@ -10,7 +10,7 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
         static void Main(string[] args)
         {
-            var bufferWindow = 15;
+            var bufferWindow = 13;
 
             var filenames = new string[]
             {
@@ -32,7 +32,7 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
             var timeSeries = TimeSeriesReader.ReadTimeSeriesDataFromFromFile(filepath, bufferWindowSize);
 
-            var epsilonPercentage = 0.5;
+            var epsilonPercentage = 1.5;
             var epsilonPercentageSteps = 0.5;
             var epsilonMaximum = 5;
 
