@@ -10,7 +10,7 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
         static void Main(string[] args)
         {
-            var bufferWindow = 10;
+            var bufferWindow = 15;
 
             var filenames = new string[]
             {
@@ -51,62 +51,64 @@ namespace Buffered_Sim_Piece_Mix_Piece
             }
             while (epsilonPercentage <= epsilonMaximum);
 
-            //Console.WriteLine();
-            //Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
 
-            //epsilonPercentage = 0.5;
+            epsilonPercentage = 0.5;
 
-            //Console.WriteLine($"Data set: {name}, Algorithm: Mix-Piece");
-            //do
-            //{
-            //    var compressedTimeSeries = MixPiece.Compress(timeSeries, epsilonPercentage);
+            Console.WriteLine($"Data set: {name}, Algorithm: Mix-Piece");
+            do
+            {
+                var compressedTimeSeries = MixPiece.Compress(timeSeries, epsilonPercentage);
 
-            //    var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
-            //    Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
-            //    epsilonPercentage += epsilonPercentageSteps;
-            //}
-            //while (epsilonPercentage <= epsilonMaximum);
+                var reconstructedTimeSeries = MixPiece.Decompress(compressedTimeSeries, timeSeries[^1].Timestamp);
 
-            //Console.WriteLine();
-            //Console.WriteLine();
+                epsilonPercentage += epsilonPercentageSteps;
+            }
+            while (epsilonPercentage <= epsilonMaximum);
 
-            //epsilonPercentage = 0.5;
+            Console.WriteLine();
+            Console.WriteLine();
 
-            //Console.WriteLine($"Data set: {name}, Algorithm: Custom-Piece (Longest Segments)");
-            //do
-            //{
-            //    var compressedTimeSeries = CustomPiece.CompressWithLongestSegments(timeSeries, epsilonPercentage);
+            epsilonPercentage = 0.5;
 
-            //    var compressionRatio = PlaUtils.GetCompressionRatioForCustomPiece(timeSeries, compressedTimeSeries);
+            Console.WriteLine($"Data set: {name}, Algorithm: Custom-Piece (Longest Segments)");
+            do
+            {
+                var compressedTimeSeries = CustomPiece.CompressWithLongestSegments(timeSeries, epsilonPercentage);
 
-            //    Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
+                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
-            //    epsilonPercentage += epsilonPercentageSteps;
-            //}
-            //while (epsilonPercentage <= epsilonMaximum);
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
-            //Console.WriteLine();
-            //Console.WriteLine();
+                epsilonPercentage += epsilonPercentageSteps;
+            }
+            while (epsilonPercentage <= epsilonMaximum);
 
-            //epsilonPercentage = 0.5;
+            Console.WriteLine();
+            Console.WriteLine();
 
-            //Console.WriteLine($"Data set: {name}, Algorithm: Custom-Piece (Most Compressible Segments)");
-            //do
-            //{
-            //    var compressedTimeSeries = CustomPiece.CompressWithMostCompressibleSegments(timeSeries, epsilonPercentage);
+            epsilonPercentage = 0.5;
 
-            //    var compressionRatio = PlaUtils.GetCompressionRatioForCustomPiece(timeSeries, compressedTimeSeries);
+            Console.WriteLine($"Data set: {name}, Algorithm: Custom-Piece (Most Compressible Segments)");
+            do
+            {
+                var compressedTimeSeries = CustomPiece.CompressWithMostCompressibleSegments(timeSeries, epsilonPercentage);
 
-            //    Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
+                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
-            //    epsilonPercentage += epsilonPercentageSteps;
-            //}
-            //while (epsilonPercentage <= epsilonMaximum);
+                Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
-            //Console.WriteLine();
-            //Console.WriteLine();
+                epsilonPercentage += epsilonPercentageSteps;
+            }
+            while (epsilonPercentage <= epsilonMaximum);
+
+            Console.WriteLine();
+            Console.WriteLine();
         }
     }
 }
