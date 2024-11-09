@@ -1,11 +1,20 @@
-﻿using Buffered_Sim_Piece_Mix_Piece.Models;
+﻿using SimMixCustomPiece.Models;
 using System.Globalization;
 
-namespace Buffered_Sim_Piece_Mix_Piece.Utilities
+namespace Sim_Mix_Custom_Piece_Tests.Utilities
 {
+    /// <summary>
+    /// Used for reading time series stored in files.
+    /// </summary>
     internal static class TimeSeriesReader
     {
-        public static List<Point> ReadTimeSeriesDataFromFromFile(string filepath, int bufferWindowSize)
+        /// <summary>
+        /// Reads a time series from a comma-delimited CSV file.
+        /// </summary>
+        /// <param name="filepath"></param>
+        /// <param name="bucketSize"></param>
+        /// <returns></returns>
+        public static List<Point> ReadTimeSeriesDataFromFromFile(string filepath, int bucketSize)
         {
             var timeSeries = new List<Point>();
 
@@ -14,7 +23,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
                 string line = streamReader.ReadLine()!;
                 int i = 0;
 
-                while (!string.IsNullOrEmpty(line) && i < bufferWindowSize)
+                while (!string.IsNullOrEmpty(line) && i < bucketSize)
                 {
                     var keyValue = line.Split(',');
 

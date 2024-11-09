@@ -1,6 +1,9 @@
-﻿namespace Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments
+﻿namespace SimMixCustomPiece.Models.LinearSegments
 {
-    internal class BaseLinearSegment
+    /// <summary>
+    /// Represents the shared parts of the final output of a compressed time series.
+    /// </summary>
+    public class BaseLinearSegment
     {
         public double UpperBoundGradient { get; set; }
 

@@ -1,12 +1,13 @@
-﻿using Buffered_Sim_Piece_Mix_Piece.Models;
-using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
+﻿using SimMixCustomPiece.Models;
+using SimMixCustomPiece.Models.LinearSegments;
 
-namespace Buffered_Sim_Piece_Mix_Piece.Utilities
+namespace SimMixCustomPiece.Algorithms.Utilities
 {
     /// <summary>
-    /// Offers a few different algorithms for performing lossy compression with Piece-wise Linear Approximation.
+    /// Contains utilities for PLA-based lossy compression as well as shared functionality of the Sim-, Mix-, and Custom-Piece
+    /// algorithms.
     /// </summary>
-    internal static class PlaUtils
+    public static class PlaUtils
     {
         private const int ByteSize = sizeof(byte);
         private const int TimestampSize = ByteSize;
@@ -30,7 +31,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
                 minimumValue = Math.Min(minimumValue, point.Value);
             }
 
-            return (maximumValue - minimumValue) * (epsilonPercentage / 100);
+            return (maximumValue - minimumValue) * epsilonPercentage / 100;
         }
 
         /// <summary>
@@ -85,6 +86,55 @@ namespace Buffered_Sim_Piece_Mix_Piece.Utilities
         public static double GetCeilingQuantizedValue(double pointValue, double epsilon)
         {
             return Math.Ceiling(pointValue / epsilon) * epsilon;
+        }
+
+        /// <summary>
+        /// Reconstructs time series points from the provided segments.
+        /// </summary>
+        /// <param name="segments"></param>
+        /// <param name="lastPointTimestamp"></param>
+        /// <returns></returns>
+        public static List<Point> GetReconstructedTimeSeriesFromSegments(List<Segment> segments, long lastPointTimestamp)
+        {
+            var reconstructedTimeSeries = new List<Point>();
+
+            // Sort the segments by their starting timestamp.
+            segments.Sort(CompareSegmentsByStartTimestamp);
+
+            // Add the first point to simplify later segment iteration.
+            reconstructedTimeSeries.Add(new Point
+            {
+                Timestamp = segments[0].StartTimestamp,
+                Value = segments[0].QuantizedValue
+            });
+
+            for (var i = 0; i < segments.Count; i++)
+            {
+                var startTimestamp = segments[i].StartTimestamp;
+                long endTimestamp;
+
+                // Check to assign appropriate end timestamp values.
+                if (i < segments.Count - 1)
+                    // In case the segment isn't last, it's end timestamp will be the next segment's start timestamp.
+                    endTimestamp = segments[i + 1].StartTimestamp;
+                else
+                    // In case of the segment being last, its end timestamp must be provided.
+                    endTimestamp = lastPointTimestamp;
+
+                // The first point is always added as the previous segment's last point. This covers the whole timeseries.
+                for (var currentTimestamp = startTimestamp + 1; currentTimestamp <= endTimestamp; currentTimestamp++)
+                {
+                    var reconstructedValue = segments[i].UpperBoundGradient * (currentTimestamp - startTimestamp) + segments[i].QuantizedValue;
+
+                    reconstructedTimeSeries.Add(new Point
+                    {
+                        Timestamp = currentTimestamp,
+                        Value = reconstructedValue
+                    });
+                }
+            }
+
+            return reconstructedTimeSeries;
         }
 
         /// <summary>

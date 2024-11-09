@@ -1,6 +1,9 @@
-﻿namespace Buffered_Sim_Piece_Mix_Piece.Models
+﻿namespace SimMixCustomPiece.Models
 {
-    internal class Segment
+    /// <summary>
+    /// Represents a compressed section of a time series made of multiple points.
+    /// </summary>
+    public class Segment
     {
         public long StartTimestamp { get; set; }
 

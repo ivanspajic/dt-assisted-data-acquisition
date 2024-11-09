@@ -1,13 +1,13 @@
-﻿using Buffered_Sim_Piece_Mix_Piece.Models;
-using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
-using Buffered_Sim_Piece_Mix_Piece.Utilities;
+﻿using SimMixCustomPiece.Algorithms.Utilities;
+using SimMixCustomPiece.Models;
+using SimMixCustomPiece.Models.LinearSegments;
 
-namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
+namespace SimMixCustomPiece.Algorithms
 {
     /// <summary>
     /// Implements the Mix-Piece Piece-wise Linear Approximation algorithm.
     /// </summary>
-    internal static class MixPiece
+    public static class MixPiece
     {
         /// <summary>
         /// Performs lossy compression using the Mix-Piece algorithm.
@@ -37,7 +37,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
         public static List<Point> Decompress(Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedTimeSeries, long lastPointTimestamp)
         {
             var segments = GetSegmentsFromAllLinearSegments(compressedTimeSeries);
-            var reconstructedTimeSeries = GetReconstructedTimeSeriesFromSegments(segments, lastPointTimestamp);
+            var reconstructedTimeSeries = PlaUtils.GetReconstructedTimeSeriesFromSegments(segments, lastPointTimestamp);
 
             return reconstructedTimeSeries;
         }
@@ -160,7 +160,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         (nextPoint.Timestamp - currentPoint.Timestamp);
 
                 if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
-                    currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) / 
+                    currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) /
                         (nextPoint.Timestamp - currentPoint.Timestamp);
 
                 if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue + epsilon)
@@ -224,16 +224,18 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 
                 segmentGroupPair.Value.Sort(PlaUtils.CompareSegmentsByLowerBound);
 
-                foreach (var currentSegment in segmentGroupPair.Value)
+                for (var i = 0; i < segmentGroupPair.Value.Count; i++)
                 {
                     // Check if there is any overlap between the current segment and the current bounds of the group.
-                    if (currentSegment.LowerBoundGradient <= currentGroupedLinearSegment.UpperBoundGradient && 
-                        currentSegment.UpperBoundGradient >= currentGroupedLinearSegment.LowerBoundGradient)
+                    if (segmentGroupPair.Value[i].LowerBoundGradient <= currentGroupedLinearSegment.UpperBoundGradient &&
+                        segmentGroupPair.Value[i].UpperBoundGradient >= currentGroupedLinearSegment.LowerBoundGradient)
                     {
                         // In case of an overlap, tighten the upper and lower bounds further.
-                        currentGroupedLinearSegment.UpperBoundGradient = Math.Min(currentGroupedLinearSegment.UpperBoundGradient, currentSegment.UpperBoundGradient);
-                        currentGroupedLinearSegment.LowerBoundGradient = Math.Max(currentGroupedLinearSegment.LowerBoundGradient, currentSegment.LowerBoundGradient);
-                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.StartTimestamp);
+                        currentGroupedLinearSegment.UpperBoundGradient = Math.Min(currentGroupedLinearSegment.UpperBoundGradient,
+                            segmentGroupPair.Value[i].UpperBoundGradient);
+                        currentGroupedLinearSegment.LowerBoundGradient = Math.Max(currentGroupedLinearSegment.LowerBoundGradient,
+                            segmentGroupPair.Value[i].LowerBoundGradient);
+                        currentGroupedLinearSegment.Timestamps.Add(segmentGroupPair.Value[i].StartTimestamp);
                     }
                     else
                     {
@@ -250,17 +252,24 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                             if (!stillUngroupedSegmentGroups.ContainsKey(segmentGroupPair.Key))
                                 stillUngroupedSegmentGroups[segmentGroupPair.Key] = [];
 
-                            stillUngroupedSegmentGroups[segmentGroupPair.Key].Add(currentSegment);
+                            stillUngroupedSegmentGroups[segmentGroupPair.Key].Add(new Segment
+                            {
+                                UpperBoundGradient = currentGroupedLinearSegment.UpperBoundGradient,
+                                LowerBoundGradient = currentGroupedLinearSegment.LowerBoundGradient,
+                                StartTimestamp = currentGroupedLinearSegment.Timestamps[0],
+                                QuantizedValue = segmentGroupPair.Key,
+                                EndTimestamp = segmentGroupPair.Value[i - 1].EndTimestamp,
+                            });
                         }
 
-                        // Reset the new group creation with the current segment's information.
+                        // Reset the new group creation with the current segment's relevant information.
                         currentGroupedLinearSegment = new GroupedLinearSegment([])
                         {
                             QuantizedValue = segmentGroupPair.Key,
-                            UpperBoundGradient = currentSegment.UpperBoundGradient,
-                            LowerBoundGradient = currentSegment.LowerBoundGradient
+                            UpperBoundGradient = segmentGroupPair.Value[i].UpperBoundGradient,
+                            LowerBoundGradient = segmentGroupPair.Value[i].LowerBoundGradient
                         };
-                        currentGroupedLinearSegment.Timestamps.Add(currentSegment.StartTimestamp);
+                        currentGroupedLinearSegment.Timestamps.Add(segmentGroupPair.Value[i].StartTimestamp);
                     }
                 }
 
@@ -276,7 +285,9 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                     {
                         UpperBoundGradient = currentGroupedLinearSegment.UpperBoundGradient,
                         LowerBoundGradient = currentGroupedLinearSegment.LowerBoundGradient,
-                        StartTimestamp = currentGroupedLinearSegment.Timestamps[0]
+                        StartTimestamp = currentGroupedLinearSegment.Timestamps[0],
+                        QuantizedValue = segmentGroupPair.Value[^1].QuantizedValue,
+                        EndTimestamp = segmentGroupPair.Value[^1].EndTimestamp,
                     });
                 }
             }
@@ -322,6 +333,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                             });
                         }
 
+                        // Reset the new group creation with the current segment's relevant information.
                         currentHalfGroupedLinearSegment = new HalfGroupedLinearSegment([])
                         {
                             UpperBoundGradient = currentSegment.UpperBoundGradient,
@@ -402,55 +414,6 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             }
 
             return segments;
-        }
-
-        /// <summary>
-        /// Reconstructs time series points from the provided segments.
-        /// </summary>
-        /// <param name="segments"></param>
-        /// <param name="lastPointTimestamp"></param>
-        /// <returns></returns>
-        private static List<Point> GetReconstructedTimeSeriesFromSegments(List<Segment> segments, long lastPointTimestamp)
-        {
-            var reconstructedTimeSeries = new List<Point>();
-
-            // Sort the segments by their starting timestamp.
-            segments.Sort(PlaUtils.CompareSegmentsByStartTimestamp);
-
-            // Add the first point to simplify later segment iteration.
-            reconstructedTimeSeries.Add(new Point
-            {
-                Timestamp = segments[0].StartTimestamp,
-                Value = segments[0].QuantizedValue
-            });
-
-            for (var i = 0; i < segments.Count; i++)
-            {
-                var startTimestamp = segments[i].StartTimestamp;
-                long endTimestamp;
-
-                // Check to assign appropriate end timestamp values.
-                if (i < segments.Count - 1)
-                    // In case the segment isn't last, it's end timestamp will be the next segment's start timestamp.
-                    endTimestamp = segments[i + 1].StartTimestamp;
-                else
-                    // In case of the segment being last, its end timestamp must be provided.
-                    endTimestamp = lastPointTimestamp;
-
-                // The first point is always added as the previous segment's last point. This covers the whole timeseries.
-                for (var currentTimestamp = startTimestamp + 1; currentTimestamp <= endTimestamp; currentTimestamp++)
-                {
-                    var reconstructedValue = segments[i].UpperBoundGradient * (currentTimestamp - startTimestamp) + segments[i].QuantizedValue;
-
-                    reconstructedTimeSeries.Add(new Point
-                    {
-                        Timestamp = currentTimestamp,
-                        Value = reconstructedValue
-                    });
-                }
-            }
-
-            return reconstructedTimeSeries;
         }
     }
 }
