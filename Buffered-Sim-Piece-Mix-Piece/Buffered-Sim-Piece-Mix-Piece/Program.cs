@@ -1,8 +1,5 @@
 ﻿using Buffered_Sim_Piece_Mix_Piece.Algorithms;
-using Buffered_Sim_Piece_Mix_Piece.Models;
 using Buffered_Sim_Piece_Mix_Piece.Utilities;
-using System.IO.Compression;
-using System.Text.Json;
 
 namespace Buffered_Sim_Piece_Mix_Piece
 {
@@ -13,7 +10,7 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
         static void Main(string[] args)
         {
-            var bufferWindow = 10;
+            var bufferWindow = 15;
 
             var filenames = new string[]
             {
@@ -48,6 +45,8 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
                 Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
+                var reconstructedTimeSeries = SimPiece.Decompress(compressedTimeSeries, timeSeries[^1].Timestamp);
+
                 epsilonPercentage += epsilonPercentageSteps;
             }
             while (epsilonPercentage <= epsilonMaximum);
@@ -66,6 +65,8 @@ namespace Buffered_Sim_Piece_Mix_Piece
 
                 Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
+                var reconstructedTimeSeries = MixPiece.Decompress(compressedTimeSeries, timeSeries[^1].Timestamp);
+
                 epsilonPercentage += epsilonPercentageSteps;
             }
             while (epsilonPercentage <= epsilonMaximum);
@@ -80,7 +81,7 @@ namespace Buffered_Sim_Piece_Mix_Piece
             {
                 var compressedTimeSeries = CustomPiece.CompressWithLongestSegments(timeSeries, epsilonPercentage);
 
-                var compressionRatio = PlaUtils.GetCompressionRatioForCustomPiece(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
                 Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 
@@ -98,7 +99,7 @@ namespace Buffered_Sim_Piece_Mix_Piece
             {
                 var compressedTimeSeries = CustomPiece.CompressWithMostCompressibleSegments(timeSeries, epsilonPercentage);
 
-                var compressionRatio = PlaUtils.GetCompressionRatioForCustomPiece(timeSeries, compressedTimeSeries);
+                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
                 Console.WriteLine($"Epsilon: {epsilonPercentage}%, Compression Ratio: {compressionRatio:#.000}");
 

@@ -1,11 +1,6 @@
 ﻿using Buffered_Sim_Piece_Mix_Piece.Models;
 using Buffered_Sim_Piece_Mix_Piece.Models.LinearSegments;
 using Buffered_Sim_Piece_Mix_Piece.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
 {
@@ -25,12 +20,26 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
                 throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
 
-            var epsilon = epsilonPercentage / 100;
+            var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
             var segmentGroups = GetSegmentGroupsFromTimeSeries(timeSeries, epsilon);
             var linearSegmentGroups = GetLinearSegmentGroupsFromSegmentGroups(segmentGroups);
 
             return linearSegmentGroups;
+        }
+
+        /// <summary>
+        /// Decompresses the compressed time series and returns reconstructed data points, each fitting within +/- epsilon of the original value.
+        /// </summary>
+        /// <param name="compressedTimeSeries"></param>
+        /// <param name="lastPointTimestamp"></param>
+        /// <returns></returns>
+        public static List<Point> Decompress(Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedTimeSeries, long lastPointTimestamp)
+        {
+            var segments = GetSegmentsFromAllLinearSegments(compressedTimeSeries);
+            var reconstructedTimeSeries = GetReconstructedTimeSeriesFromSegments(segments, lastPointTimestamp);
+
+            return reconstructedTimeSeries;
         }
 
         /// <summary>
@@ -208,7 +217,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             {
                 var currentGroupedLinearSegment = new GroupedLinearSegment([])
                 {
-                    QuantizedOriginValue = segmentGroupPair.Key,
+                    QuantizedValue = segmentGroupPair.Key,
                     UpperBoundGradient = double.PositiveInfinity,
                     LowerBoundGradient = double.NegativeInfinity
                 };
@@ -247,7 +256,7 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
                         // Reset the new group creation with the current segment's information.
                         currentGroupedLinearSegment = new GroupedLinearSegment([])
                         {
-                            QuantizedOriginValue = segmentGroupPair.Key,
+                            QuantizedValue = segmentGroupPair.Key,
                             UpperBoundGradient = currentSegment.UpperBoundGradient,
                             LowerBoundGradient = currentSegment.LowerBoundGradient
                         };
@@ -341,6 +350,107 @@ namespace Buffered_Sim_Piece_Mix_Piece.Algorithms
             return new Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>>(groupedLinearSegmentList,
                 halfGroupedLinearSegmentList,
                 ungroupedLinearSegmentList);
+        }
+
+        /// <summary>
+        /// Gets segments for reconstructing the original time series from the grouped, half-grouped, and ungrouped linear segments.
+        /// </summary>
+        /// <param name="linearSegments"></param>
+        /// <returns></returns>
+        private static List<Segment> GetSegmentsFromAllLinearSegments(Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> linearSegments)
+        {
+            var segments = new List<Segment>();
+
+            // Get segments from grouped linear segments.
+            foreach (var groupedLinearSegment in linearSegments.Item1)
+            {
+                foreach (var timestamp in groupedLinearSegment.Timestamps)
+                {
+                    // One of the gradient properties can be used for the gradient from the grouped linear segment.
+                    segments.Add(new Segment
+                    {
+                        QuantizedValue = groupedLinearSegment.QuantizedValue,
+                        UpperBoundGradient = groupedLinearSegment.Gradient,
+                        StartTimestamp = timestamp
+                    });
+                }
+            }
+
+            // Get segments from half-grouped linear segments.
+            foreach (var halfGroupedLinearSegment in linearSegments.Item2)
+            {
+                foreach (var valueTimestampPair in halfGroupedLinearSegment.QuantizedValueTimestampPairs)
+                {
+                    segments.Add(new Segment
+                    {
+                        QuantizedValue = valueTimestampPair.Item1,
+                        UpperBoundGradient = halfGroupedLinearSegment.Gradient,
+                        StartTimestamp = valueTimestampPair.Item2
+                    });
+                }
+            }
+
+            // Get segments from ungrouped linear segments.
+            foreach (var ungroupedLinearSegment in linearSegments.Item3)
+            {
+                segments.Add(new Segment
+                {
+                    QuantizedValue = ungroupedLinearSegment.ValueTimestampPair.Item1,
+                    UpperBoundGradient = ungroupedLinearSegment.Gradient,
+                    StartTimestamp = ungroupedLinearSegment.ValueTimestampPair.Item2
+                });
+            }
+
+            return segments;
+        }
+
+        /// <summary>
+        /// Reconstructs time series points from the provided segments.
+        /// </summary>
+        /// <param name="segments"></param>
+        /// <param name="lastPointTimestamp"></param>
+        /// <returns></returns>
+        private static List<Point> GetReconstructedTimeSeriesFromSegments(List<Segment> segments, long lastPointTimestamp)
+        {
+            var reconstructedTimeSeries = new List<Point>();
+
+            // Sort the segments by their starting timestamp.
+            segments.Sort(PlaUtils.CompareSegmentsByStartTimestamp);
+
+            // Add the first point to simplify later segment iteration.
+            reconstructedTimeSeries.Add(new Point
+            {
+                Timestamp = segments[0].StartTimestamp,
+                Value = segments[0].QuantizedValue
+            });
+
+            for (var i = 0; i < segments.Count; i++)
+            {
+                var startTimestamp = segments[i].StartTimestamp;
+                long endTimestamp;
+
+                // Check to assign appropriate end timestamp values.
+                if (i < segments.Count - 1)
+                    // In case the segment isn't last, it's end timestamp will be the next segment's start timestamp.
+                    endTimestamp = segments[i + 1].StartTimestamp;
+                else
+                    // In case of the segment being last, its end timestamp must be provided.
+                    endTimestamp = lastPointTimestamp;
+
+                // The first point is always added as the previous segment's last point. This covers the whole timeseries.
+                for (var currentTimestamp = startTimestamp + 1; currentTimestamp <= endTimestamp; currentTimestamp++)
+                {
+                    var reconstructedValue = segments[i].UpperBoundGradient * (currentTimestamp - startTimestamp) + segments[i].QuantizedValue;
+
+                    reconstructedTimeSeries.Add(new Point
+                    {
+                        Timestamp = currentTimestamp,
+                        Value = reconstructedValue
+                    });
+                }
+            }
+
+            return reconstructedTimeSeries;
         }
     }
 }
