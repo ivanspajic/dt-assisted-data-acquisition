@@ -4,9 +4,9 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities
 {
     internal class TestData : IEnumerable<object[]>
     {
-        private const string BaseFilepath = @"C:\dev\low-bandwidth-dt\Mix-Piece_Sim-Piece-1.0.0-RC1\src\test\resources\Austevoll Data";
+        public const string BaseFilepath = @"C:\dev\low-bandwidth-dt\Mix-Piece_Sim-Piece-1.0.0-RC1\src\test\resources\Austevoll Data";
 
-        private readonly string[] DataSets =
+        public readonly string[] DataSets =
         {
             "Turbidity#16340 - Analog Sensors #0.csv",
             "Pressure - Pressure Sensor #1955.csv",
@@ -16,12 +16,12 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities
             "Density - Conductivity Sensor #41.csv"
         };
 
-        private readonly int[] BucketSizes =
+        public readonly int[] BucketSizes =
         {
             5, 7, 10, 13
         };
 
-        private readonly double[] EpsilonPercentages =
+        public readonly double[] EpsilonPercentages =
         {
             0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5
         };
