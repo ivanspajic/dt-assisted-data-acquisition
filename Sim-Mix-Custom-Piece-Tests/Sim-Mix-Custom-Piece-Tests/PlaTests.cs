@@ -110,7 +110,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         }
         #endregion
 
-        #region TestResultsPrinters
+        #region Experiments
         [Fact]
         public void All_algorithms_produce_test_results_in_csv_files()
         {
@@ -123,7 +123,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         [Fact]
         public void Sim_Piece_produces_test_results_in_csv_file()
         {
-            var testResultsFilepath = Path.Combine(TestData.BaseFilepath, "Test Results", "Sim-Piece Test Results.csv");
+            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", "Sim-Piece Test Results.csv");
             var testResults = new List<CsvTestResults>();
             var testData = new TestData();
 
@@ -157,7 +157,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         [Fact]
         public void Mix_Piece_produces_test_results_in_csv_file()
         {
-            var testResultsFilepath = Path.Combine(TestData.BaseFilepath, "Test Results", "Mix-Piece Test Results.csv");
+            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", "Mix-Piece Test Results.csv");
             var testResults = new List<CsvTestResults>();
             var testData = new TestData();
 
@@ -191,7 +191,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         [Fact]
         public void Custom_Piece_longest_segments_produces_test_results_in_csv_file()
         {
-            var testResultsFilepath = Path.Combine(TestData.BaseFilepath, "Test Results", "Custom-Piece (Longest Segments) Test Results.csv");
+            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", "Custom-Piece (Longest Segments) Test Results.csv");
             var testResults = new List<CsvTestResults>();
             var testData = new TestData();
 
@@ -225,7 +225,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         [Fact]
         public void Custom_Piece_most_compressible_segments_produces_test_results_in_csv_file()
         {
-            var testResultsFilepath = Path.Combine(TestData.BaseFilepath, "Test Results", "Custom-Piece (Most Compressible Segments) Test Results.csv");
+            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", "Custom-Piece (Most Compressible Segments) Test Results.csv");
             var testResults = new List<CsvTestResults>();
             var testData = new TestData();
 
@@ -254,6 +254,13 @@ namespace Sim_Mix_Custom_Piece_Tests
             }
 
             WriteCompressionTestResultsToCsvFile(testResultsFilepath, testResults);
+        }
+
+        [Fact]
+        public void Digital_twin_prediction_data_savings_in_csv_file()
+        {
+            // TODO: make the DT prediction experiment that shows how much data is saved by attempting to predict what the
+            // sea-borne sensors will send. Pick a data set and go over a portion to simulate predictions.
         }
         #endregion
 
