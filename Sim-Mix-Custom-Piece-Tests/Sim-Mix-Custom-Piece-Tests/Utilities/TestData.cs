@@ -4,16 +4,16 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities
 {
     internal class TestData : IEnumerable<object[]>
     {
-        public const string BaseFilepath = @"C:\dev\low-bandwidth-dt\Mix-Piece_Sim-Piece-1.0.0-RC1\src\test\resources\Austevoll Data";
+        public const string BaseDataFilepath = @"C:\dev\low-bandwidth-dt\data";
 
         public readonly string[] DataSets =
         {
-            "Turbidity#16340 - Analog Sensors #0.csv",
-            "Pressure - Pressure Sensor #1955.csv",
-            "Salinity - Conductivity Sensor #41.csv",
-            "AirSaturation - Oxygen Optode #754.csv",
-            "Chlorophyll#2103755 - Analog Sensors #0.csv",
-            "Density - Conductivity Sensor #41.csv"
+            @"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv",
+            @"data-sets\austevoll-data\Pressure - Pressure Sensor #1955.csv",
+            @"data-sets\austevoll-data\Salinity - Conductivity Sensor #41.csv",
+            @"data-sets\austevoll-data\AirSaturation - Oxygen Optode #754.csv",
+            @"data-sets\austevoll-data\Chlorophyll#2103755 - Analog Sensors #0.csv",
+            @"data-sets\austevoll-data\Density - Conductivity Sensor #41.csv"
         };
 
         public readonly int[] BucketSizes =
@@ -34,7 +34,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities
                 {
                     foreach (var epsilonPercentage in EpsilonPercentages)
                     {
-                        var filepath = Path.Combine(BaseFilepath, dataSet);
+                        var filepath = Path.Combine(BaseDataFilepath, dataSet);
 
                         yield return new object[] { filepath, bucketSize, epsilonPercentage };
                     }
