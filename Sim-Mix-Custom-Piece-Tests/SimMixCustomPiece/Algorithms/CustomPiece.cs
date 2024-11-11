@@ -102,21 +102,21 @@ namespace SimMixCustomPiece.Algorithms
                 if (!floorSegmentCreationFinalized)
                 {
                     // Use the point-slope form to check whether the next point's value is outside of the current floor-based upper and lower bounds.
-                    if (nextPoint.Value > currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue + epsilon ||
-                        nextPoint.Value < currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                    if (nextPoint.Value > currentFloorUpperBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentFloorQuantizedValue + epsilon ||
+                        nextPoint.Value < currentFloorLowerBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentFloorQuantizedValue - epsilon)
                         // If the next point is out of bounds, mark the floor-based segment creation as finalized.
                         floorSegmentCreationFinalized = true;
                     else
                     {
                         // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
-                        if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                        if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentFloorQuantizedValue - epsilon)
                             // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                            currentFloorUpperBoundGradient = (nextPoint.Value - currentFloorQuantizedValue + epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                            currentFloorUpperBoundGradient = (nextPoint.Value - currentFloorQuantizedValue + epsilon) / (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp);
 
                         // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                        if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue + epsilon)
+                        if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentFloorQuantizedValue + epsilon)
                             // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                            currentFloorLowerBoundGradient = (nextPoint.Value - currentFloorQuantizedValue - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                            currentFloorLowerBoundGradient = (nextPoint.Value - currentFloorQuantizedValue - epsilon) / (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp);
 
                         floorSegmentAdded = false;
                     }
@@ -125,21 +125,21 @@ namespace SimMixCustomPiece.Algorithms
                 if (!ceilingSegmentCreationFinalized)
                 {
                     // Use the point-slope form to check whether the next point's value is outside of the current ceiling-based upper and lower bounds.
-                    if (nextPoint.Value > currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue + epsilon ||
-                        nextPoint.Value < currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                    if (nextPoint.Value > currentCeilingUpperBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentCeilingQuantizedValue + epsilon ||
+                        nextPoint.Value < currentCeilingLowerBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentCeilingQuantizedValue - epsilon)
                         // If the next point is out of bounds, mark the ceiling-based segment creation as finalized.
                         ceilingSegmentCreationFinalized = true;
                     else
                     {
                         // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
-                        if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                        if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentCeilingQuantizedValue - epsilon)
                             // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                            currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                            currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) / (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp);
 
                         // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                        if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue + epsilon)
+                        if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentCeilingQuantizedValue + epsilon)
                             // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                            currentCeilingLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                            currentCeilingLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) / (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp);
 
                         ceilingSegmentAdded = false;
                     }
@@ -158,8 +158,8 @@ namespace SimMixCustomPiece.Algorithms
                     {
                         LowerBoundGradient = currentFloorLowerBoundGradient,
                         UpperBoundGradient = currentFloorUpperBoundGradient,
-                        StartTimestamp = currentStartPoint.Timestamp,
-                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp,
+                        StartTimestamp = currentStartPoint.SimpleTimestamp,
+                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].SimpleTimestamp,
                         QuantizedValue = currentFloorQuantizedValue,
                         Type = "Floor"
                     };
@@ -199,8 +199,8 @@ namespace SimMixCustomPiece.Algorithms
                     {
                         LowerBoundGradient = currentCeilingLowerBoundGradient,
                         UpperBoundGradient = currentCeilingUpperBoundGradient,
-                        StartTimestamp = currentStartPoint.Timestamp,
-                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp,
+                        StartTimestamp = currentStartPoint.SimpleTimestamp,
+                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].SimpleTimestamp,
                         QuantizedValue = currentCeilingQuantizedValue,
                         Type = "Ceiling"
                     };

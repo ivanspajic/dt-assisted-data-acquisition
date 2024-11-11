@@ -104,7 +104,7 @@ namespace SimMixCustomPiece.Algorithms.Utilities
             // Add the first point to simplify later segment iteration.
             reconstructedTimeSeries.Add(new Point
             {
-                Timestamp = segments[0].StartTimestamp,
+                SimpleTimestamp = segments[0].StartTimestamp,
                 Value = segments[0].QuantizedValue
             });
 
@@ -128,7 +128,7 @@ namespace SimMixCustomPiece.Algorithms.Utilities
 
                     reconstructedTimeSeries.Add(new Point
                     {
-                        Timestamp = currentTimestamp,
+                        SimpleTimestamp = currentTimestamp,
                         Value = reconstructedValue
                     });
                 }

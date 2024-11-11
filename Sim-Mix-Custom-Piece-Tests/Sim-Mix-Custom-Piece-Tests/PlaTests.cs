@@ -1,13 +1,10 @@
-using CsvHelper;
-using CsvHelper.Configuration;
+using Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities;
 using Sim_Mix_Custom_Piece_Tests.Utilities.Systems;
 using Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations;
 using Sim_Mix_Custom_Piece_Tests.Utilities.TestModels;
 using SimMixCustomPiece.Algorithms;
 using SimMixCustomPiece.Algorithms.Utilities;
-using SimMixCustomPiece.Models;
 using SimMixCustomPiece.Models.LinearSegments;
-using System.Globalization;
 
 namespace Sim_Mix_Custom_Piece_Tests
 {
@@ -18,18 +15,18 @@ namespace Sim_Mix_Custom_Piece_Tests
         [ClassData(typeof(TestData))]
         public void Reconstructed_Sim_Piece_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
         {
-            var timeSeries = ReadTimeSeriesDataFromCsvFile(dataSet, bucketSize);
+            var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
             var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
             
             var compressedTimeSeries = SimPiece.Compress(timeSeries, epsilonPercentage);
-            var reconstructedTimeSeries = SimPiece.Decompress(compressedTimeSeries, timeSeries[^1].Timestamp);
+            var reconstructedTimeSeries = SimPiece.Decompress(compressedTimeSeries, timeSeries[^1].SimpleTimestamp);
 
             Assert.Equal(timeSeries.Count, reconstructedTimeSeries.Count);
 
             for (var i = 0; i < timeSeries.Count; i++)
             {
-                Assert.Equal(timeSeries[i].Timestamp, reconstructedTimeSeries[i].Timestamp);
+                Assert.Equal(timeSeries[i].SimpleTimestamp, reconstructedTimeSeries[i].SimpleTimestamp);
                 Assert.True(Math.Abs(timeSeries[i].Value - reconstructedTimeSeries[i].Value) <= epsilon);
             }
         }
@@ -38,18 +35,18 @@ namespace Sim_Mix_Custom_Piece_Tests
         [ClassData(typeof(TestData))]
         public void Reconstructed_Mix_Piece_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
         {
-            var timeSeries = ReadTimeSeriesDataFromCsvFile(dataSet, bucketSize);
+            var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
             var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
             var compressedTimeSeries = MixPiece.Compress(timeSeries, epsilonPercentage);
-            var reconstructedTimeSeries = MixPiece.Decompress(compressedTimeSeries, timeSeries[^1].Timestamp);
+            var reconstructedTimeSeries = MixPiece.Decompress(compressedTimeSeries, timeSeries[^1].SimpleTimestamp);
 
             Assert.Equal(timeSeries.Count, reconstructedTimeSeries.Count);
 
             for (var i = 0; i < timeSeries.Count; i++)
             {
-                Assert.Equal(timeSeries[i].Timestamp, reconstructedTimeSeries[i].Timestamp);
+                Assert.Equal(timeSeries[i].SimpleTimestamp, reconstructedTimeSeries[i].SimpleTimestamp);
                 Assert.True(Math.Abs(timeSeries[i].Value - reconstructedTimeSeries[i].Value) <= epsilon);
             }
         }
@@ -58,18 +55,18 @@ namespace Sim_Mix_Custom_Piece_Tests
         [ClassData(typeof(TestData))]
         public void Reconstructed_Custom_Piece_longest_segments_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
         {
-            var timeSeries = ReadTimeSeriesDataFromCsvFile(dataSet, bucketSize);
+            var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
             var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
             var compressedTimeSeries = CustomPiece.CompressWithLongestSegments(timeSeries, epsilonPercentage);
-            var reconstructedTimeSeries = CustomPiece.Decompress(compressedTimeSeries, timeSeries[^1].Timestamp);
+            var reconstructedTimeSeries = CustomPiece.Decompress(compressedTimeSeries, timeSeries[^1].SimpleTimestamp);
 
             Assert.Equal(timeSeries.Count, reconstructedTimeSeries.Count);
 
             for (var i = 0; i < timeSeries.Count; i++)
             {
-                Assert.Equal(timeSeries[i].Timestamp, reconstructedTimeSeries[i].Timestamp);
+                Assert.Equal(timeSeries[i].SimpleTimestamp, reconstructedTimeSeries[i].SimpleTimestamp);
                 Assert.True(Math.Abs(timeSeries[i].Value - reconstructedTimeSeries[i].Value) <= epsilon);
             }
         }
@@ -78,18 +75,18 @@ namespace Sim_Mix_Custom_Piece_Tests
         [ClassData(typeof(TestData))]
         public void Reconstructed_Custom_Piece_most_compressible_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
         {
-            var timeSeries = ReadTimeSeriesDataFromCsvFile(dataSet, bucketSize);
+            var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
             var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
             var compressedTimeSeries = CustomPiece.CompressWithMostCompressibleSegments(timeSeries, epsilonPercentage);
-            var reconstructedTimeSeries = CustomPiece.Decompress(compressedTimeSeries, timeSeries[^1].Timestamp);
+            var reconstructedTimeSeries = CustomPiece.Decompress(compressedTimeSeries, timeSeries[^1].SimpleTimestamp);
 
             Assert.Equal(timeSeries.Count, reconstructedTimeSeries.Count);
 
             for (var i = 0; i < timeSeries.Count; i++)
             {
-                Assert.Equal(timeSeries[i].Timestamp, reconstructedTimeSeries[i].Timestamp);
+                Assert.Equal(timeSeries[i].SimpleTimestamp, reconstructedTimeSeries[i].SimpleTimestamp);
                 Assert.True(Math.Abs(timeSeries[i].Value - reconstructedTimeSeries[i].Value) <= epsilon);
             }
         }
@@ -133,7 +130,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 var bucketSize = (int)testDataPoint[1];
                 var epsilonPercentage = (double)testDataPoint[2];
 
-                var timeSeries = ReadTimeSeriesDataFromCsvFile(dataSet, bucketSize);
+                var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
                 var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
@@ -151,7 +148,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 testResults.Add(csvTestResults);
             }
 
-            WriteCompressionTestResultsToCsvFile(testResultsFilepath, testResults);
+            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
 
         [Fact]
@@ -167,7 +164,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 var bucketSize = (int)testDataPoint[1];
                 var epsilonPercentage = (double)testDataPoint[2];
 
-                var timeSeries = ReadTimeSeriesDataFromCsvFile(dataSet, bucketSize);
+                var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
                 var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
@@ -185,7 +182,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 testResults.Add(csvTestResults);
             }
 
-            WriteCompressionTestResultsToCsvFile(testResultsFilepath, testResults);
+            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
 
         [Fact]
@@ -201,7 +198,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 var bucketSize = (int)testDataPoint[1];
                 var epsilonPercentage = (double)testDataPoint[2];
 
-                var timeSeries = ReadTimeSeriesDataFromCsvFile(dataSet, bucketSize);
+                var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
                 var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
@@ -219,7 +216,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 testResults.Add(csvTestResults);
             }
 
-            WriteCompressionTestResultsToCsvFile(testResultsFilepath, testResults);
+            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
 
         [Fact]
@@ -235,7 +232,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 var bucketSize = (int)testDataPoint[1];
                 var epsilonPercentage = (double)testDataPoint[2];
 
-                var timeSeries = ReadTimeSeriesDataFromCsvFile(dataSet, bucketSize);
+                var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
                 var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
@@ -253,7 +250,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 testResults.Add(csvTestResults);
             }
 
-            WriteCompressionTestResultsToCsvFile(testResultsFilepath, testResults);
+            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
 
         [Fact]
@@ -268,11 +265,6 @@ namespace Sim_Mix_Custom_Piece_Tests
             var testResults = new List<EnergySavingsTestResults>();
             var testData = new TestData();
 
-            var zetaPercentage = 5;
-
-            // Determines whether compression should happen for highest accuracy or highest compressibility.
-            var isMostAccurate = true;
-
             foreach (var testDataPoint in testData)
             {
                 var dataSet = testDataPoint[0].ToString();
@@ -282,19 +274,17 @@ namespace Sim_Mix_Custom_Piece_Tests
                 // Match the portion of the time series to the current bucket size.
                 var timeSeriesEndIndex = 100 * bucketSize;
 
-                var requiredTimeSeriesPortion = DigitalTwin.GetRequiredTimeSeriesPortionForBucketSize(bucketSize);
-
                 // Start at 2 * bucketSize index to have enough earlier points available for subsequent predictions.
-                for (var i = requiredTimeSeriesPortion; i < timeSeriesEndIndex; i += bucketSize)
+                for (var i = DigitalTwin.RequiredNumberOfPreviousPointsForPrediction; i < timeSeriesEndIndex; i += bucketSize)
                 {
-                    var actualTimeSeriesPortion = ReadTimeSeriesDataFromCsvFile(dataSet, i, bucketSize);
-
-                    var oldTimeSeriesPortion = ReadTimeSeriesDataFromCsvFile(dataSet, i - requiredTimeSeriesPortion, requiredTimeSeriesPortion);
-                    var predictedTimeSeriesPortion = DigitalTwin.GetPredictedTimeSeriesPortionFromPreviousPortion(oldTimeSeriesPortion);
+                    var actualTimeSeriesPortion = CsvFileUtils.ReadTimeSeriesFromCsvWithStartingTimestamp(dataSet, i, bucketSize);
+                    var predictedTimeSeriesPortion = DigitalTwin.GetPredictedTimeSeriesPortion(dataSet, i, testData.SamplingInterval, bucketSize);
 
                     Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedPredictedTimeSeriesPortion;
                     Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedActualTimeSeriesPortion;
-                    if (isMostAccurate)
+                    
+                    // Check whether compression should happen for highest accuracy or highest compressibility.
+                    if (TestData.CompressForMostAccuracy)
                     {
                         compressedPredictedTimeSeriesPortion = CustomPiece.CompressWithLongestSegments(predictedTimeSeriesPortion, epsilonPercentage);
                         compressedActualTimeSeriesPortion = CustomPiece.CompressWithLongestSegments(actualTimeSeriesPortion, epsilonPercentage);
@@ -305,66 +295,11 @@ namespace Sim_Mix_Custom_Piece_Tests
                         compressedActualTimeSeriesPortion = CustomPiece.CompressWithMostCompressibleSegments(actualTimeSeriesPortion, epsilonPercentage);
                     }
 
-
+                    // TODO: evaluate the deviation between the actual and the predicted compressed time series.
                 }
             }
 
-            WriteCompressionTestResultsToCsvFile(testResultsFilepath, testResults);
-        }
-        #endregion
-
-        #region Helpers
-        private List<Point> ReadTimeSeriesDataFromCsvFile(string filepath, int startIndexInclusive, int bucketSize)
-        {
-            var timeSeries = new List<Point>();
-
-            var csvHelperConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                HasHeaderRecord = false,
-                Delimiter = ","
-            };
-
-            using (var streamReader = new StreamReader(filepath))
-            using (var csvReader = new CsvReader(streamReader, csvHelperConfig))
-            {
-                var i = 0;
-
-                while (i < startIndexInclusive)
-                {
-                    csvReader.Read();
-
-                    i++;
-                }
-
-                while (csvReader.Read() && i < startIndexInclusive + bucketSize)
-                {
-                    timeSeries.Add(csvReader.GetRecord<Point>());
-
-                    i++;
-                }
-            }
-
-            return timeSeries;
-        }
-
-        private List<Point> ReadTimeSeriesDataFromCsvFile(string filepath, int bucketSize)
-        {
-            return ReadTimeSeriesDataFromCsvFile(filepath, 0, bucketSize);
-        }
-
-        private void WriteCompressionTestResultsToCsvFile<T>(string filepath, List<T> testResults)
-        {
-            using var streamWriter = new StreamWriter(filepath);
-            using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
-
-            csvWriter.WriteHeader<T>();
-            csvWriter.NextRecord();
-
-            foreach (var testResult in testResults)
-            {
-                csvWriter.WriteRecord(testResult);
-                csvWriter.NextRecord();
-            }
+            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
         #endregion
     }
