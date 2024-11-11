@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace Sim_Mix_Custom_Piece_Tests.Utilities
+namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
 {
     internal class TestData : IEnumerable<object[]>
     {

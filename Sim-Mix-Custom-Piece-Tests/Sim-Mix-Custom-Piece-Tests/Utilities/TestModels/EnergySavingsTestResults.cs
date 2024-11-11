@@ -1,8 +1,13 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestModels
 {
-    internal class CsvTestResults
+    internal class EnergySavingsTestResults
     {
         [Index(0)]
         public string DataSet { get; set; }
@@ -14,6 +19,9 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestModels
         public double EpsilonPercentage { get; set; }
 
         [Index(3)]
-        public double CompressionRatio { get; set; }
+        public double ZetaPercentage { get; set; }
+
+        [Index(4)]
+        public double PercentageEnergySaved { get; set; }
     }
 }
