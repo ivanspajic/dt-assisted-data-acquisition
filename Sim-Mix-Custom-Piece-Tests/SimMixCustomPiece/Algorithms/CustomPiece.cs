@@ -10,18 +10,52 @@ namespace SimMixCustomPiece.Algorithms
     public static class CustomPiece
     {
         /// <summary>
-        /// Performs lossy compression using the Custom-Piece algorithm with a focus on higher data accuracy via longer compressible segments.
+        /// Performs lossy compression using the Custom-Piece algorithm based on Mix-Piece. Allows for choosing between the greatest accuracy or the greatest
+        /// compressibility.
         /// </summary>
         /// <param name="timeSeries"></param>
         /// <param name="epsilonPercentage"></param>
+        /// <param name="compressForHighestAccuracy"></param>
         /// <returns></returns>
-        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> CompressWithLongestSegments(List<Point> timeSeries, double epsilonPercentage)
+        /// <exception cref="ArgumentException"></exception>
+        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> Compress(List<Point> timeSeries,
+            double epsilonPercentage,
+            bool compressForHighestAccuracy)
         {
             if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
                 throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
 
             var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
 
+            if (compressForHighestAccuracy)
+                return CompressWithLongestSegments(timeSeries, epsilon);
+
+            return CompressWithMostCompressibleSegments(timeSeries, epsilon);
+        }
+
+        /// <summary>
+        /// Decompresses the compressed time series and returns reconstructed data points, each fitting within +/- epsilon of the original value.
+        /// </summary>
+        /// <param name="compressedTimeSeries"></param>
+        /// <param name="lastPointTimestamp"></param>
+        /// <returns></returns>
+        public static List<Point> Decompress(Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedTimeSeries, 
+            long lastPointTimestamp)
+        {
+            var segments = GetSegmentsFromAllLinearSegments(compressedTimeSeries);
+            var reconstructedTimeSeries = PlaUtils.GetReconstructedTimeSeriesFromSegments(segments, lastPointTimestamp);
+
+            return reconstructedTimeSeries;
+        }
+
+        /// <summary>
+        /// Performs lossy compression using the Custom-Piece algorithm with a focus on higher data accuracy via longer compressible segments.
+        /// </summary>
+        /// <param name="timeSeries"></param>
+        /// <param name="epsilonPercentage"></param>
+        /// <returns></returns>
+        private static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> CompressWithLongestSegments(List<Point> timeSeries, double epsilon)
+        {
             var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
             var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
             var shortestSegmentPath = GetShortestSegmentPath(separateSegmentPaths);
@@ -38,33 +72,14 @@ namespace SimMixCustomPiece.Algorithms
         /// <param name="epsilonPercentage"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> CompressWithMostCompressibleSegments(List<Point> timeSeries, double epsilonPercentage)
+        private static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> CompressWithMostCompressibleSegments(List<Point> timeSeries, double epsilon)
         {
-            if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
-                throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
-
-            var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
-
             var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
             var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
 
             var linearSegmentGroups = GetLinearSegmentGroupsFromMostCompressibleSegmentPath(timeSeries, separateSegmentPaths);
 
             return linearSegmentGroups;
-        }
-
-        /// <summary>
-        /// Decompresses the compressed time series and returns reconstructed data points, each fitting within +/- epsilon of the original value.
-        /// </summary>
-        /// <param name="compressedTimeSeries"></param>
-        /// <param name="lastPointTimestamp"></param>
-        /// <returns></returns>
-        public static List<Point> Decompress(Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedTimeSeries, long lastPointTimestamp)
-        {
-            var segments = GetSegmentsFromAllLinearSegments(compressedTimeSeries);
-            var reconstructedTimeSeries = PlaUtils.GetReconstructedTimeSeriesFromSegments(segments, lastPointTimestamp);
-
-            return reconstructedTimeSeries;
         }
 
         /// <summary>
@@ -102,21 +117,21 @@ namespace SimMixCustomPiece.Algorithms
                 if (!floorSegmentCreationFinalized)
                 {
                     // Use the point-slope form to check whether the next point's value is outside of the current floor-based upper and lower bounds.
-                    if (nextPoint.Value > currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue + epsilon ||
-                        nextPoint.Value < currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                    if (nextPoint.Value > currentFloorUpperBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentFloorQuantizedValue + epsilon ||
+                        nextPoint.Value < currentFloorLowerBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentFloorQuantizedValue - epsilon)
                         // If the next point is out of bounds, mark the floor-based segment creation as finalized.
                         floorSegmentCreationFinalized = true;
                     else
                     {
                         // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
-                        if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                        if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentFloorQuantizedValue - epsilon)
                             // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                            currentFloorUpperBoundGradient = (nextPoint.Value - currentFloorQuantizedValue + epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                            currentFloorUpperBoundGradient = (nextPoint.Value - currentFloorQuantizedValue + epsilon) / (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp);
 
                         // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                        if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentFloorQuantizedValue + epsilon)
+                        if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentFloorQuantizedValue + epsilon)
                             // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                            currentFloorLowerBoundGradient = (nextPoint.Value - currentFloorQuantizedValue - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                            currentFloorLowerBoundGradient = (nextPoint.Value - currentFloorQuantizedValue - epsilon) / (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp);
 
                         floorSegmentAdded = false;
                     }
@@ -125,21 +140,21 @@ namespace SimMixCustomPiece.Algorithms
                 if (!ceilingSegmentCreationFinalized)
                 {
                     // Use the point-slope form to check whether the next point's value is outside of the current ceiling-based upper and lower bounds.
-                    if (nextPoint.Value > currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue + epsilon ||
-                        nextPoint.Value < currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                    if (nextPoint.Value > currentCeilingUpperBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentCeilingQuantizedValue + epsilon ||
+                        nextPoint.Value < currentCeilingLowerBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentCeilingQuantizedValue - epsilon)
                         // If the next point is out of bounds, mark the ceiling-based segment creation as finalized.
                         ceilingSegmentCreationFinalized = true;
                     else
                     {
                         // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
-                        if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                        if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentCeilingQuantizedValue - epsilon)
                             // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                            currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                            currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) / (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp);
 
                         // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                        if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentStartPoint.Timestamp) + currentCeilingQuantizedValue + epsilon)
+                        if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp) + currentCeilingQuantizedValue + epsilon)
                             // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                            currentCeilingLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) / (nextPoint.Timestamp - currentStartPoint.Timestamp);
+                            currentCeilingLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) / (nextPoint.SimpleTimestamp - currentStartPoint.SimpleTimestamp);
 
                         ceilingSegmentAdded = false;
                     }
@@ -158,8 +173,8 @@ namespace SimMixCustomPiece.Algorithms
                     {
                         LowerBoundGradient = currentFloorLowerBoundGradient,
                         UpperBoundGradient = currentFloorUpperBoundGradient,
-                        StartTimestamp = currentStartPoint.Timestamp,
-                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp,
+                        StartTimestamp = currentStartPoint.SimpleTimestamp,
+                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].SimpleTimestamp,
                         QuantizedValue = currentFloorQuantizedValue,
                         Type = "Floor"
                     };
@@ -199,8 +214,8 @@ namespace SimMixCustomPiece.Algorithms
                     {
                         LowerBoundGradient = currentCeilingLowerBoundGradient,
                         UpperBoundGradient = currentCeilingUpperBoundGradient,
-                        StartTimestamp = currentStartPoint.Timestamp,
-                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].Timestamp,
+                        StartTimestamp = currentStartPoint.SimpleTimestamp,
+                        EndTimestamp = timeSeries[continuedTimeSeriesIndex].SimpleTimestamp,
                         QuantizedValue = currentCeilingQuantizedValue,
                         Type = "Ceiling"
                     };

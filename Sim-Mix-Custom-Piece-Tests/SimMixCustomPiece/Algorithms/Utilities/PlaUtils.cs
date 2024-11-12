@@ -104,7 +104,7 @@ namespace SimMixCustomPiece.Algorithms.Utilities
             // Add the first point to simplify later segment iteration.
             reconstructedTimeSeries.Add(new Point
             {
-                Timestamp = segments[0].StartTimestamp,
+                SimpleTimestamp = segments[0].StartTimestamp,
                 Value = segments[0].QuantizedValue
             });
 
@@ -128,7 +128,7 @@ namespace SimMixCustomPiece.Algorithms.Utilities
 
                     reconstructedTimeSeries.Add(new Point
                     {
-                        Timestamp = currentTimestamp,
+                        SimpleTimestamp = currentTimestamp,
                         Value = reconstructedValue
                     });
                 }
@@ -145,17 +145,38 @@ namespace SimMixCustomPiece.Algorithms.Utilities
         /// <returns></returns>
         public static double GetCompressionRatioForSimPiece(List<Point> timeSeries, List<GroupedLinearSegment> compressedTimeSeries)
         {
-            // A point can be represented with 1 byte for the timestamp + 8 bytes for the value.
-            double timeSeriesSize = timeSeries.Count * (TimestampSize + QuantizedValueSize);
+            double timeSeriesSize = GetUncompressedTimeSeriesSizeInBytes(timeSeries);
+            double compressedTimeSeriesSize = GetCompressedSimPieceTimeSeriesSizeInBytes(compressedTimeSeries);
 
+            return timeSeriesSize / compressedTimeSeriesSize;
+        }
+
+        /// <summary>
+        /// Returns the size of an uncompressed time series in bytes.
+        /// </summary>
+        /// <param name="timeSeries"></param>
+        /// <returns></returns>
+        public static int GetUncompressedTimeSeriesSizeInBytes(List<Point> timeSeries)
+        {
+            // A point can be represented with 1 byte for the timestamp + 8 bytes for the value.
+            return timeSeries.Count * (TimestampSize + QuantizedValueSize);
+        }
+
+        /// <summary>
+        /// Returns the size of a Sim-Piece-compressed time series in bytes.
+        /// </summary>
+        /// <param name="compressedTimeSeries"></param>
+        /// <returns></returns>
+        public static int GetCompressedSimPieceTimeSeriesSizeInBytes(List<GroupedLinearSegment> compressedTimeSeries)
+        {
             // A grouped linear segment can be represented with 8 bytes for the quantized value + 8 bytes for the gradient + 1 byte for every timestamp in the
             // group.
-            double compressedTimeSeriesSize = compressedTimeSeries.Count * (QuantizedValueSize + GradientValueSize);
+            var compressedTimeSeriesSize = compressedTimeSeries.Count * (QuantizedValueSize + GradientValueSize);
 
             foreach (var linearSegment in compressedTimeSeries)
                 compressedTimeSeriesSize += linearSegment.Timestamps.Count;
 
-            return timeSeriesSize / compressedTimeSeriesSize;
+            return compressedTimeSeriesSize;
         }
 
         /// <summary>
@@ -167,24 +188,34 @@ namespace SimMixCustomPiece.Algorithms.Utilities
         public static double GetCompressionRatioForMixPiece(List<Point> timeSeries,
             Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedTimeSeries)
         {
-            // A point can be represented with 1 byte for the timestamp + 8 bytes for the value.
-            double timeSeriesSize = timeSeries.Count * (TimestampSize + QuantizedValueSize);
+            double timeSeriesSize = GetUncompressedTimeSeriesSizeInBytes(timeSeries);
+            double compressedTimeSeriesSize = GetCompressedMixPieceTimeSeriesSizeInBytes(compressedTimeSeries);
 
+            return timeSeriesSize / compressedTimeSeriesSize;
+        }
+
+        /// <summary>
+        /// Returns the size of a Mix-Piece-compressed time series in bytes.
+        /// </summary>
+        /// <param name="compressedTimeSeries"></param>
+        /// <returns></returns>
+        public static int GetCompressedMixPieceTimeSeriesSizeInBytes(Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> compressedTimeSeries)
+        {
             // A grouped linear segment can be represented with 8 bytes for the quantized value + 8 bytes for the gradient + 1 byte for every timestamp in the
             // group.
-            double compressedGroupedLinearSegmentsSize = compressedTimeSeries.Item1.Count * (QuantizedValueSize + GradientValueSize);
+            var compressedGroupedLinearSegmentsSize = compressedTimeSeries.Item1.Count * (QuantizedValueSize + GradientValueSize);
 
             // A half-grouped linear segment can be represented with 8 bytes for the gradient + 8 bytes for every quantized value in the group + 1 byte for every
             // timestamp in the group.
-            double compressedHalfGroupedLinearSegmentsSize = compressedTimeSeries.Item2.Count * GradientValueSize;
+            var compressedHalfGroupedLinearSegmentsSize = compressedTimeSeries.Item2.Count * GradientValueSize;
 
             foreach (var halfGroupedLinearSegment in compressedTimeSeries.Item2)
                 compressedHalfGroupedLinearSegmentsSize += halfGroupedLinearSegment.QuantizedValueTimestampPairs.Count * (QuantizedValueSize + TimestampSize);
 
             // An ungrouped linear segment can be represented with 8 bytes for the quantized value + 8 bytes for the gradient + 1 byte for the timestamp.
-            double compressedUngroupedLinearSegmentsSize = compressedTimeSeries.Item3.Count * (QuantizedValueSize + GradientValueSize + TimestampSize);
+            var compressedUngroupedLinearSegmentsSize = compressedTimeSeries.Item3.Count * (QuantizedValueSize + GradientValueSize + TimestampSize);
 
-            return timeSeriesSize / (compressedGroupedLinearSegmentsSize + compressedHalfGroupedLinearSegmentsSize + compressedUngroupedLinearSegmentsSize);
+            return compressedGroupedLinearSegmentsSize + compressedHalfGroupedLinearSegmentsSize + compressedUngroupedLinearSegmentsSize;
         }
     }
 }

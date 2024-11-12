@@ -5,7 +5,9 @@
     /// </summary>
     public class Point
     {
-        public long Timestamp { get; set; }
+        public long SimpleTimestamp { get; set; }
+
+        public DateTime DateTime { get; set; }
 
         public double Value { get; set; }
     }

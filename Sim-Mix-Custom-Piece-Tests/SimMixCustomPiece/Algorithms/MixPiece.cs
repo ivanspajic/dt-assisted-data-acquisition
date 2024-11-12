@@ -75,15 +75,15 @@ namespace SimMixCustomPiece.Algorithms
 
                 // Use the point-slope form to check whether the next point's value is outside of the current upper and lower bounds for both types of
                 // quantized values.
-                if (nextPoint.Value > currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentFloorQuantizedValue + epsilon ||
-                    nextPoint.Value < currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                if (nextPoint.Value > currentFloorUpperBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentFloorQuantizedValue + epsilon ||
+                    nextPoint.Value < currentFloorLowerBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentFloorQuantizedValue - epsilon)
                 {
                     // In this case, the floor quantized value's segment doesn't include the next point.
                     floorIncludedAnotherPoint = false;
                 }
 
-                if (nextPoint.Value > currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue + epsilon ||
-                    nextPoint.Value < currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                if (nextPoint.Value > currentCeilingUpperBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentCeilingQuantizedValue + epsilon ||
+                    nextPoint.Value < currentCeilingLowerBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentCeilingQuantizedValue - epsilon)
                 {
                     // In this case, the ceiling quantized value's segment doesn't include the next point.
                     ceilingIncludedAnotherPoint = false;
@@ -110,8 +110,8 @@ namespace SimMixCustomPiece.Algorithms
                         {
                             LowerBoundGradient = currentFloorLowerBoundGradient,
                             UpperBoundGradient = currentFloorUpperBoundGradient,
-                            StartTimestamp = currentPoint.Timestamp,
-                            EndTimestamp = timeSeries[i].Timestamp,
+                            StartTimestamp = currentPoint.SimpleTimestamp,
+                            EndTimestamp = timeSeries[i].SimpleTimestamp,
                             QuantizedValue = currentFloorQuantizedValue,
                             Type = "Floor"
                         });
@@ -125,8 +125,8 @@ namespace SimMixCustomPiece.Algorithms
                         {
                             LowerBoundGradient = currentCeilingLowerBoundGradient,
                             UpperBoundGradient = currentCeilingUpperBoundGradient,
-                            StartTimestamp = currentPoint.Timestamp,
-                            EndTimestamp = timeSeries[i].Timestamp,
+                            StartTimestamp = currentPoint.SimpleTimestamp,
+                            EndTimestamp = timeSeries[i].SimpleTimestamp,
                             QuantizedValue = currentCeilingQuantizedValue,
                             Type = "Ceiling"
                         });
@@ -151,21 +151,21 @@ namespace SimMixCustomPiece.Algorithms
 
                 // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away or above the lower bound but more
                 // than an epsilon away, for both quantized value types. If true, adjust the bounds to fit the point within an epsilon.
-                if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentFloorQuantizedValue - epsilon)
+                if (nextPoint.Value < currentFloorUpperBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentFloorQuantizedValue - epsilon)
                     currentFloorUpperBoundGradient = (nextPoint.Value - currentFloorQuantizedValue + epsilon) /
-                        (nextPoint.Timestamp - currentPoint.Timestamp);
+                        (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp);
 
-                if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentFloorQuantizedValue + epsilon)
+                if (nextPoint.Value > currentFloorLowerBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentFloorQuantizedValue + epsilon)
                     currentFloorLowerBoundGradient = (nextPoint.Value - currentFloorQuantizedValue - epsilon) /
-                        (nextPoint.Timestamp - currentPoint.Timestamp);
+                        (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp);
 
-                if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue - epsilon)
+                if (nextPoint.Value < currentCeilingUpperBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentCeilingQuantizedValue - epsilon)
                     currentCeilingUpperBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue + epsilon) /
-                        (nextPoint.Timestamp - currentPoint.Timestamp);
+                        (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp);
 
-                if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentCeilingQuantizedValue + epsilon)
+                if (nextPoint.Value > currentCeilingLowerBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentCeilingQuantizedValue + epsilon)
                     currentCeilingLowerBoundGradient = (nextPoint.Value - currentCeilingQuantizedValue - epsilon) /
-                        (nextPoint.Timestamp - currentPoint.Timestamp);
+                        (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp);
             }
 
             // Add the segment still under creation at the end of the time series.
@@ -178,8 +178,8 @@ namespace SimMixCustomPiece.Algorithms
                 {
                     LowerBoundGradient = currentFloorLowerBoundGradient,
                     UpperBoundGradient = currentFloorUpperBoundGradient,
-                    StartTimestamp = currentPoint.Timestamp,
-                    EndTimestamp = timeSeries[^1].Timestamp,
+                    StartTimestamp = currentPoint.SimpleTimestamp,
+                    EndTimestamp = timeSeries[^1].SimpleTimestamp,
                     QuantizedValue = currentFloorQuantizedValue,
                     Type = "Floor"
                 });
@@ -193,8 +193,8 @@ namespace SimMixCustomPiece.Algorithms
                 {
                     LowerBoundGradient = currentCeilingLowerBoundGradient,
                     UpperBoundGradient = currentCeilingUpperBoundGradient,
-                    StartTimestamp = currentPoint.Timestamp,
-                    EndTimestamp = timeSeries[^1].Timestamp,
+                    StartTimestamp = currentPoint.SimpleTimestamp,
+                    EndTimestamp = timeSeries[^1].SimpleTimestamp,
                     QuantizedValue = currentCeilingQuantizedValue,
                     Type = "Ceiling"
                 });

@@ -64,8 +64,8 @@ namespace SimMixCustomPiece.Algorithms
                 var nextPoint = timeSeries[i + 1];
 
                 // Use the point-slope form to check whether the next point's value is outside of the current upper and lower bounds.
-                if (nextPoint.Value > currentUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue + epsilon ||
-                    nextPoint.Value < currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
+                if (nextPoint.Value > currentUpperBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentQuantizedValue + epsilon ||
+                    nextPoint.Value < currentLowerBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentQuantizedValue - epsilon)
                 {
                     // In case of the value being outside of the bounds, finalize the creation of the current segment and add it to the group for
                     // this origin value.
@@ -76,8 +76,8 @@ namespace SimMixCustomPiece.Algorithms
                     {
                         LowerBoundGradient = currentLowerBoundGradient,
                         UpperBoundGradient = currentUpperBoundGradient,
-                        StartTimestamp = currentPoint.Timestamp,
-                        EndTimestamp = timeSeries[i].Timestamp
+                        StartTimestamp = currentPoint.SimpleTimestamp,
+                        EndTimestamp = timeSeries[i].SimpleTimestamp
                     });
 
                     // Reset before continuing.
@@ -89,14 +89,14 @@ namespace SimMixCustomPiece.Algorithms
                 }
 
                 // Use the point-slope form to check if the next point is below the upper bound but more than epsilon away.
-                if (nextPoint.Value < currentUpperBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue - epsilon)
+                if (nextPoint.Value < currentUpperBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentQuantizedValue - epsilon)
                     // In case of being more than epsilon away, adjust the current upper bound to be within epsilon away from the next point.
-                    currentUpperBoundGradient = (nextPoint.Value - currentQuantizedValue + epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
+                    currentUpperBoundGradient = (nextPoint.Value - currentQuantizedValue + epsilon) / (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp);
 
                 // Use the point-slope form to check if the next point is above the lower bound but mor than epsilon away.
-                if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.Timestamp - currentPoint.Timestamp) + currentQuantizedValue + epsilon)
+                if (nextPoint.Value > currentLowerBoundGradient * (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp) + currentQuantizedValue + epsilon)
                     // In case of being more than epsilon away, adjust the current lower bound to be within epsilon away from the next point.
-                    currentLowerBoundGradient = (nextPoint.Value - currentQuantizedValue - epsilon) / (nextPoint.Timestamp - currentPoint.Timestamp);
+                    currentLowerBoundGradient = (nextPoint.Value - currentQuantizedValue - epsilon) / (nextPoint.SimpleTimestamp - currentPoint.SimpleTimestamp);
             }
 
             // Add the segment still under creation at the end of the time series.
@@ -107,8 +107,8 @@ namespace SimMixCustomPiece.Algorithms
             {
                 LowerBoundGradient = currentLowerBoundGradient,
                 UpperBoundGradient = currentUpperBoundGradient,
-                StartTimestamp = currentPoint.Timestamp,
-                EndTimestamp = timeSeries[^1].Timestamp
+                StartTimestamp = currentPoint.SimpleTimestamp,
+                EndTimestamp = timeSeries[^1].SimpleTimestamp
             });
 
             return segmentGroups;
