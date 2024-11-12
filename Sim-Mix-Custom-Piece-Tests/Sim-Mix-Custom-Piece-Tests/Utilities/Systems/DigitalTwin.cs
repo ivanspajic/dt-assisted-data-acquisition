@@ -3,6 +3,9 @@ using SimMixCustomPiece.Models;
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.Systems
 {
+    /// <summary>
+    /// Simulates a digital twin.
+    /// </summary>
     internal static class DigitalTwin
     {
         /// <summary>
@@ -46,15 +49,13 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.Systems
         /// <returns></returns>
         private static DateTime GetLastPointTimestamp(string dataSet, int simpleTimestamp)
         {
-            var lastPoint = CsvFileUtils.ReadTimeSeriesFromCsvWithStartingTimestamp(dataSet,
-                simpleTimestamp - 1,
-                1)[0];
+            var lastPoint = CsvFileUtils.ReadTimeSeriesFromCsvWithStartingTimestamp(dataSet, simpleTimestamp - 1, 1)[0];
 
             return lastPoint.DateTime;
         }
 
         /// <summary>
-        /// Returns 7 point values from the last week such that 1 with the same timestamp (time of day) is returned from each day.
+        /// Returns previous point values from the last week such that one with the same timestamp (time of day) is returned from each day.
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>

@@ -5,7 +5,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
     internal class TestData : IEnumerable<object[]>
     {
         public const string BaseDataFilepath = @"C:\dev\low-bandwidth-dt\data";
-        public const double ZetaPercentage = 5;
+        public const double ZetaPercentage = 2;
         public const bool CompressForHighestAccuracy = true;
         public static readonly string DataSetPath = Path.Combine("data-sets", "austevoll-data");
         public static readonly TimeSpan SamplingInterval = TimeSpan.FromMinutes(30);
@@ -17,7 +17,8 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
             Path.Combine(DataSetPath, "Salinity - Conductivity Sensor #41.csv"),
             Path.Combine(DataSetPath, "AirSaturation - Oxygen Optode #754.csv"),
             Path.Combine(DataSetPath, "Chlorophyll#2103755 - Analog Sensors #0.csv"),
-            Path.Combine(DataSetPath, "Density - Conductivity Sensor #41.csv")
+            Path.Combine(DataSetPath, "Density - Conductivity Sensor #41.csv"),
+            Path.Combine(DataSetPath, "Temperature - Temperature Sensor #1063.csv")
         };
 
         public static readonly int[] BucketSizes =
