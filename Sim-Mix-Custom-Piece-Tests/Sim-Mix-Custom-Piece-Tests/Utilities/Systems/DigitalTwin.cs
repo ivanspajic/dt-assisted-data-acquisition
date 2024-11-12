@@ -1,13 +1,5 @@
 ﻿using Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities;
-using SimMixCustomPiece.Algorithms;
 using SimMixCustomPiece.Models;
-using SimMixCustomPiece.Models.LinearSegments;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit.Abstractions;
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.Systems
 {
@@ -33,7 +25,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.Systems
             {
                 var timestamp = lastPointTimestamp.Add((i + 1) * samplingInterval);
 
-                var matchingDailyValues = GetSevenPointValuesFromLastWeekWithMatchingTimes(dataSet, simpleTimestamp, timestamp);
+                var matchingDailyValues = GetPreviousPointValuesWithMatchingTimes(dataSet, simpleTimestamp, timestamp);
                 var averageValue = matchingDailyValues.Sum() / matchingDailyValues.Count;
 
                 predictedTimeSeriesPortion.Add(new Point
@@ -66,14 +58,15 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.Systems
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        private static List<double> GetSevenPointValuesFromLastWeekWithMatchingTimes(string dataSet, int simpleTimestamp, DateTime timestamp)
+        private static List<double> GetPreviousPointValuesWithMatchingTimes(string dataSet, int simpleTimestamp, DateTime timestamp)
         {
+            var numberOfValuesToMatchFor = 2;
             var matchingDailyValues = new List<double>();
 
             var requiredPreviousTimeSeriesPortion = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, simpleTimestamp);
 
             var i = RequiredNumberOfPreviousPointsForPrediction - 1;
-            while (i >= 0 && matchingDailyValues.Count < 7)
+            while (i >= 0 && matchingDailyValues.Count < numberOfValuesToMatchFor)
             {
                 if (requiredPreviousTimeSeriesPortion[i].DateTime.TimeOfDay == timestamp.TimeOfDay)
                     matchingDailyValues.Add(requiredPreviousTimeSeriesPortion[i].Value);

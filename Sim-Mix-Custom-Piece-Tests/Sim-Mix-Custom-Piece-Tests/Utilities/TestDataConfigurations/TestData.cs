@@ -6,26 +6,29 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
     {
         public const string BaseDataFilepath = @"C:\dev\low-bandwidth-dt\data";
         public const double ZetaPercentage = 5;
-        public const bool CompressForMostAccuracy = true;
+        public const bool CompressForHighestAccuracy = true;
+        public static readonly string DataSetPath = Path.Combine("data-sets", "austevoll-data");
+        public static readonly TimeSpan SamplingInterval = TimeSpan.FromMinutes(30);
 
-        public readonly string[] DataSets =
+        public static readonly string[] DataSets =
         {
-            @"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv",
-            @"data-sets\austevoll-data\Pressure - Pressure Sensor #1955.csv",
-            @"data-sets\austevoll-data\Salinity - Conductivity Sensor #41.csv",
-            @"data-sets\austevoll-data\AirSaturation - Oxygen Optode #754.csv",
-            @"data-sets\austevoll-data\Chlorophyll#2103755 - Analog Sensors #0.csv",
-            @"data-sets\austevoll-data\Density - Conductivity Sensor #41.csv"
+            Path.Combine(DataSetPath, "Turbidity#16340 - Analog Sensors #0.csv"),
+            Path.Combine(DataSetPath, "Pressure - Pressure Sensor #1955.csv"),
+            Path.Combine(DataSetPath, "Salinity - Conductivity Sensor #41.csv"),
+            Path.Combine(DataSetPath, "AirSaturation - Oxygen Optode #754.csv"),
+            Path.Combine(DataSetPath, "Chlorophyll#2103755 - Analog Sensors #0.csv"),
+            Path.Combine(DataSetPath, "Density - Conductivity Sensor #41.csv")
         };
-        public readonly int[] BucketSizes =
+
+        public static readonly int[] BucketSizes =
         {
             5, 7, 10, 13
         };
-        public readonly double[] EpsilonPercentages =
+
+        public static readonly double[] EpsilonPercentages =
         {
             0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5
         };
-        public readonly TimeSpan SamplingInterval = TimeSpan.FromMinutes(30);
 
         public IEnumerator<object[]> GetEnumerator()
         {
@@ -44,5 +47,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        // TODO: create enumerator classes for different combinations of data sets above for more modular testing.
     }
 }
