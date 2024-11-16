@@ -5,7 +5,6 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
     internal class TestData : IEnumerable<object[]>
     {
         public const double ZetaPercentage = 2;
-        public const bool CompressForHighestAccuracy = true;
         public static readonly string BaseDataFilepath = Path.Combine("C:", "dev", "low-bandwidth-dt", "data");
         public static readonly string DataSetPath = Path.Combine("data-sets", "austevoll-data");
         public static readonly TimeSpan SamplingInterval = TimeSpan.FromMinutes(30);

@@ -10,27 +10,23 @@ namespace SimMixCustomPiece.Algorithms
     public static class CustomPiece
     {
         /// <summary>
-        /// Performs lossy compression using the Custom-Piece algorithm based on Mix-Piece. Allows for choosing between the greatest accuracy or the greatest
-        /// compressibility.
+        /// Performs lossy compression using the Custom-Piece algorithm based on Mix-Piece.
         /// </summary>
         /// <param name="timeSeries"></param>
         /// <param name="epsilonPercentage"></param>
         /// <param name="compressForHighestAccuracy"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> Compress(List<Point> timeSeries,
-            double epsilonPercentage,
-            bool compressForHighestAccuracy)
+        public static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> Compress(List<Point> timeSeries, double epsilonPercentage)
         {
             if (timeSeries == null || timeSeries.Count < 2 || epsilonPercentage <= 0)
                 throw new ArgumentException("The time series must contain at least 2 data points, and epsilon must be a percentage greater than 0.");
 
             var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
+            var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
+            var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
 
-            if (compressForHighestAccuracy)
-                return CompressWithLongestSegments(timeSeries, epsilon);
-
-            return CompressWithMostCompressibleSegments(timeSeries, epsilon);
+            return GetLinearSegmentGroupsFromMostCompressibleSegmentPath(timeSeries, separateSegmentPaths);
         }
 
         /// <summary>
@@ -46,40 +42,6 @@ namespace SimMixCustomPiece.Algorithms
             var reconstructedTimeSeries = PlaUtils.GetReconstructedTimeSeriesFromSegments(segments, lastPointTimestamp);
 
             return reconstructedTimeSeries;
-        }
-
-        /// <summary>
-        /// Performs lossy compression using the Custom-Piece algorithm with a focus on higher data accuracy via longer compressible segments.
-        /// </summary>
-        /// <param name="timeSeries"></param>
-        /// <param name="epsilonPercentage"></param>
-        /// <returns></returns>
-        private static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> CompressWithLongestSegments(List<Point> timeSeries, double epsilon)
-        {
-            var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
-            var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
-            var shortestSegmentPath = GetShortestSegmentPath(separateSegmentPaths);
-            var segmentGroups = GetGroupedSegmentsByQuantizedValue(shortestSegmentPath);
-            var linearSegmentGroups = GetLinearSegmentGroupsFromSegmentGroups(segmentGroups);
-
-            return linearSegmentGroups;
-        }
-
-        /// <summary>
-        /// Performs lossy compression using the Custom-Piece algorithm with a focus on higher data accuracy via longer compressible segments.
-        /// </summary>
-        /// <param name="timeSeries"></param>
-        /// <param name="epsilonPercentage"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        private static Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>> CompressWithMostCompressibleSegments(List<Point> timeSeries, double epsilon)
-        {
-            var segmentPathTree = GetSegmentPathTreeForTimeSeries(timeSeries, epsilon);
-            var separateSegmentPaths = GetSeparateSegmentPathsFromTree(segmentPathTree.ToList());
-
-            var linearSegmentGroups = GetLinearSegmentGroupsFromMostCompressibleSegmentPath(timeSeries, separateSegmentPaths);
-
-            return linearSegmentGroups;
         }
 
         /// <summary>
@@ -191,7 +153,6 @@ namespace SimMixCustomPiece.Algorithms
                         // segment.
                         var remainingTimeSeries = timeSeries.Take(new Range(continuedTimeSeriesIndex, timeSeries.Count)).ToList();
                         var remainingTimeSeriesPossibleSegmentPaths = GetSegmentPathTreeForTimeSeries(remainingTimeSeries, epsilon);
-                        //var remainingTimeSeriesPossibleSegmentPaths = new HashSet<SegmentPath>();
 
                         possibleFloorSegmentPath.PossiblePaths = remainingTimeSeriesPossibleSegmentPaths;
                     }
@@ -232,7 +193,6 @@ namespace SimMixCustomPiece.Algorithms
                         // segment.
                         var remainingTimeSeries = timeSeries.Take(new Range(continuedTimeSeriesIndex, timeSeries.Count)).ToList();
                         var remainingTimeSeriesPossibleSegmentPaths = GetSegmentPathTreeForTimeSeries(remainingTimeSeries, epsilon);
-                        //var remainingTimeSeriesPossibleSegmentPaths = new HashSet<SegmentPath>();
 
                         possibleCeilingSegmentPath.PossiblePaths = remainingTimeSeriesPossibleSegmentPaths;
                     }
@@ -290,22 +250,6 @@ namespace SimMixCustomPiece.Algorithms
             }
 
             return collectionOfPaths;
-        }
-
-        /// <summary>
-        /// Gets the segment path with the fewest segments, thereby guaranteeing longer segments on average.
-        /// </summary>
-        /// <param name="separateSegmentPaths"></param>
-        /// <returns></returns>
-        private static List<Segment> GetShortestSegmentPath(List<List<Segment>> separateSegmentPaths)
-        {
-            var shortestSegmentPath = separateSegmentPaths[0];
-
-            for (var i = 0; i < separateSegmentPaths.Count; i++)
-                if (separateSegmentPaths[i].Count < shortestSegmentPath.Count)
-                    shortestSegmentPath = separateSegmentPaths[i];
-
-            return shortestSegmentPath;
         }
 
         /// <summary>

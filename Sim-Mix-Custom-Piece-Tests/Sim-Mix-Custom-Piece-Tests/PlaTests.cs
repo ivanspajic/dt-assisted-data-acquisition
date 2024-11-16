@@ -53,14 +53,12 @@ namespace Sim_Mix_Custom_Piece_Tests
 
         [Theory]
         [ClassData(typeof(TestData))]
-        public void Reconstructed_Custom_Piece_longest_segments_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
+        public void Reconstructed_Custom_Piece_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
         {
             var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
             var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
-            // Creates the longest segments.
-            var compressForHighestAccuracy = true;
 
-            var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage, compressForHighestAccuracy);
+            var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage);
             var reconstructedTimeSeries = CustomPiece.Decompress(compressedTimeSeries, timeSeries[^1].SimpleTimestamp);
 
             Assert.Equal(timeSeries.Count, reconstructedTimeSeries.Count);
@@ -74,41 +72,17 @@ namespace Sim_Mix_Custom_Piece_Tests
 
         [Theory]
         [ClassData(typeof(TestData))]
-        public void Reconstructed_Custom_Piece_most_compressible_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
-        {
-            var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
-            var epsilon = PlaUtils.GetEpsilonForTimeSeries(timeSeries, epsilonPercentage);
-            // Creates the most compressible segments.
-            var compressForHighestAccuracy = false;
-
-            var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage, compressForHighestAccuracy);
-            var reconstructedTimeSeries = CustomPiece.Decompress(compressedTimeSeries, timeSeries[^1].SimpleTimestamp);
-
-            Assert.Equal(timeSeries.Count, reconstructedTimeSeries.Count);
-
-            for (var i = 0; i < timeSeries.Count; i++)
-            {
-                Assert.Equal(timeSeries[i].SimpleTimestamp, reconstructedTimeSeries[i].SimpleTimestamp);
-                Assert.True(Math.Abs(timeSeries[i].Value - reconstructedTimeSeries[i].Value) <= epsilon);
-            }
-        }
-
-        [Theory]
-        [ClassData(typeof(TestData))]
-        public void Custom_Piece_most_compressible_yields_smallest_possible_Mix_Piece_result(string dataSet, int bucketSize, double epsilonPercentage)
+        public void Custom_Piece_yields_smallest_possible_Mix_Piece_result(string dataSet, int bucketSize, double epsilonPercentage)
         {
             var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
             var mixPieceCompressed = MixPiece.Compress(timeSeries, epsilonPercentage);
-            var customPieceLongestCompressed = CustomPiece.Compress(timeSeries, epsilonPercentage, true);
-            var customPieceMostCompressibleCompressed = CustomPiece.Compress(timeSeries, epsilonPercentage, false);
+            var customPieceCompressed = CustomPiece.Compress(timeSeries, epsilonPercentage);
 
             var mixPieceCompressedRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, mixPieceCompressed);
-            var customPieceLongestCompressedRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, customPieceLongestCompressed);
-            var customPieceMostCompressibleCompressedRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, customPieceMostCompressibleCompressed);
+            var customPieceCompressedRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, customPieceCompressed);
 
-            Assert.True(customPieceMostCompressibleCompressedRatio >= mixPieceCompressedRatio);
-            Assert.True(customPieceMostCompressibleCompressedRatio >= customPieceLongestCompressedRatio);
+            Assert.True(customPieceCompressedRatio >= mixPieceCompressedRatio);
         }
 
         #endregion
@@ -120,8 +94,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         {
             Sim_Piece_compression_test_results_in_csv_file();
             Mix_Piece_compression_test_results_in_csv_file();
-            Custom_Piece_longest_segments_compression_test_results_in_csv_file();
-            Custom_Piece_most_compressible_segments_compression_test_results_in_csv_file();
+            Custom_Piece_compression_test_results_in_csv_file();
         }
 
         [Fact]
@@ -189,14 +162,11 @@ namespace Sim_Mix_Custom_Piece_Tests
         }
 
         [Fact]
-        public void Custom_Piece_longest_segments_compression_test_results_in_csv_file()
+        public void Custom_Piece_compression_test_results_in_csv_file()
         {
-            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", "Custom-Piece (Longest Segments) Compression Test Results.csv");
+            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", "Custom-Piece Compression Test Results.csv");
             var testResults = new List<CompressionRatioTestResults>();
             var testData = new TestData();
-
-            // Creates the longest segments.
-            var compressForHighestAccuracy = true;
 
             foreach (var testDataPoint in testData)
             {
@@ -206,7 +176,7 @@ namespace Sim_Mix_Custom_Piece_Tests
 
                 var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
 
-                var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage, compressForHighestAccuracy);
+                var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage);
                 var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
                 var csvTestResults = new CompressionRatioTestResults
@@ -223,42 +193,7 @@ namespace Sim_Mix_Custom_Piece_Tests
             CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
 
-        [Fact]
-        public void Custom_Piece_most_compressible_segments_compression_test_results_in_csv_file()
-        {
-            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", "Custom-Piece (Most Compressible Segments) Compression Test Results.csv");
-            var testResults = new List<CompressionRatioTestResults>();
-            var testData = new TestData();
-
-            // Creates the most compressible segments.
-            var compressForHighestAccuracy = false;
-
-            foreach (var testDataPoint in testData)
-            {
-                var dataSet = testDataPoint[0].ToString();
-                var bucketSize = (int)testDataPoint[1];
-                var epsilonPercentage = (double)testDataPoint[2];
-
-                var timeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSet, bucketSize);
-
-                var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage, compressForHighestAccuracy);
-                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
-
-                var csvTestResults = new CompressionRatioTestResults
-                {
-                    BucketSize = bucketSize,
-                    CompressionRatio = compressionRatio,
-                    DataSet = dataSet,
-                    EpsilonPercentage = epsilonPercentage
-                };
-
-                testResults.Add(csvTestResults);
-            }
-
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
-        }
-
-        [Theory]
+        [Theory] // The strings in InlineData parameters must be constant, so system-agnostic paths cannot be applied. Remember to update these manually according to need.
         [InlineData(@"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv", 10, 3)]
         [InlineData(@"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv", 10, 5)]
         public void Sim_Piece_actual_and_decompressed_time_series_comparison_in_csv(string dataSet, int bucketSize, double epsilonPercentage)
@@ -287,7 +222,7 @@ namespace Sim_Mix_Custom_Piece_Tests
             CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
 
-        [Theory]
+        [Theory] // The strings in InlineData parameters must be constant, so system-agnostic paths cannot be applied. Remember to update these manually according to need.
         [InlineData(@"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv", 10, 1.5)]
         [InlineData(@"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv", 10, 0.5)]
         public void Mix_Piece_actual_and_decompressed_time_series_comparison_in_csv(string dataSet, int bucketSize, double epsilonPercentage)
@@ -316,52 +251,17 @@ namespace Sim_Mix_Custom_Piece_Tests
             CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
 
-        [Theory]
-        [InlineData(@"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv", 10, 2)]
-        [InlineData(@"data-sets\austevoll-data\Temperature - Temperature Sensor #1063.csv", 10, 3.5)]
-        public void Custom_Piece_longest_segments_actual_and_decompressed_time_series_comparison_in_csv(string dataSet, int bucketSize, double epsilonPercentage)
-        {
-            var dataSetFilepath = Path.Combine(TestData.BaseDataFilepath, dataSet);
-            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", $"Custom-Piece (Longest Segments) {epsilonPercentage} Percent Deviation Test Results.csv");
-            var testResults = new List<DeviationTestResults>();
-
-            // Creates the longest segments.
-            var compressForHighestAccuracy = true;
-
-            var originalTimeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSetFilepath, bucketSize);
-            var compressedTimeSeries = CustomPiece.Compress(originalTimeSeries, epsilonPercentage, compressForHighestAccuracy);
-            var decompressedTimeSeries = CustomPiece.Decompress(compressedTimeSeries, originalTimeSeries[^1].SimpleTimestamp);
-            var epsilon = PlaUtils.GetEpsilonForTimeSeries(originalTimeSeries, epsilonPercentage);
-
-            for (var i = 0; i < originalTimeSeries.Count; i++)
-            {
-                testResults.Add(new DeviationTestResults
-                {
-                    Timestamp = originalTimeSeries[i].SimpleTimestamp,
-                    OriginalValue = originalTimeSeries[i].Value,
-                    ReconstructedValue = decompressedTimeSeries[i].Value,
-                    LowerBound = decompressedTimeSeries[i].Value - epsilon,
-                    UpperBound = decompressedTimeSeries[i].Value + epsilon
-                });
-            }
-
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
-        }
-
-        [Theory]
+        [Theory] // The strings in InlineData parameters must be constant, so system-agnostic paths cannot be applied. Remember to update these manually according to need.
         [InlineData(@"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv", 10, 2)]
         [InlineData(@"data-sets\austevoll-data\Turbidity#16340 - Analog Sensors #0.csv", 10, 2.5)]
-        public void Custom_Piece_most_compressible_segments_actual_and_decompressed_time_series_comparison_in_csv(string dataSet, int bucketSize, double epsilonPercentage)
+        public void Custom_Piece_actual_and_decompressed_time_series_comparison_in_csv(string dataSet, int bucketSize, double epsilonPercentage)
         {
             var dataSetFilepath = Path.Combine(TestData.BaseDataFilepath, dataSet);
-            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", $"Custom-Piece (Most Compressible Segments) {epsilonPercentage} Percent Deviation Test Results.csv");
+            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", $"Custom-Piece {epsilonPercentage} Percent Deviation Test Results.csv");
             var testResults = new List<DeviationTestResults>();
 
-            // Creates the most compressible segments.
-            var compressForHighestAccuracy = false;
-
             var originalTimeSeries = CsvFileUtils.ReadTimeSeriesFromCsv(dataSetFilepath, bucketSize);
-            var compressedTimeSeries = CustomPiece.Compress(originalTimeSeries, epsilonPercentage, compressForHighestAccuracy);
+            var compressedTimeSeries = CustomPiece.Compress(originalTimeSeries, epsilonPercentage);
             var decompressedTimeSeries = CustomPiece.Decompress(compressedTimeSeries, originalTimeSeries[^1].SimpleTimestamp);
             var epsilon = PlaUtils.GetEpsilonForTimeSeries(originalTimeSeries, epsilonPercentage);
 
@@ -402,14 +302,14 @@ namespace Sim_Mix_Custom_Piece_Tests
                     var predictedTimeSeriesPortion = DigitalTwin.GetPredictedTimeSeriesPortion(dataSet, i, TestData.SamplingInterval, bucketSize);
 
                     // Simulate the sending of the compressed predicted time series portion to the sea-borne device for comparison.
-                    var compressedPredictedTimeSeriesPortion = CustomPiece.Compress(predictedTimeSeriesPortion, epsilonPercentage, false);
+                    var compressedPredictedTimeSeriesPortion = CustomPiece.Compress(predictedTimeSeriesPortion, epsilonPercentage);
                     var decompressedPredictedTimeSeriesPortion = CustomPiece.Decompress(compressedPredictedTimeSeriesPortion, predictedTimeSeriesPortion[^1].SimpleTimestamp);
 
                     // Check the average deviation percentage.
                     var averageDeviationPercentage = GetPercentageDeviationFromActual(actualTimeSeriesPortion, decompressedPredictedTimeSeriesPortion);
 
                     // Compress the actual time series and get its size.
-                    var compressedActualTimeSeriesPortion = CustomPiece.Compress(actualTimeSeriesPortion, epsilonPercentage, TestData.CompressForHighestAccuracy);
+                    var compressedActualTimeSeriesPortion = CustomPiece.Compress(actualTimeSeriesPortion, epsilonPercentage);
                     var compressedActualTimeSeriesSizeInBytes = PlaUtils.GetCompressedMixPieceTimeSeriesSizeInBytes(compressedActualTimeSeriesPortion);
 
                     var testResult = new DigitalTwinPredictionTestResults
