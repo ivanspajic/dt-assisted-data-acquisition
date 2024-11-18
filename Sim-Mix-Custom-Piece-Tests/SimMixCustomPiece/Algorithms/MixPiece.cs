@@ -54,8 +54,16 @@ namespace SimMixCustomPiece.Algorithms
 
             var currentPoint = timeSeries[0];
 
-            var currentFloorQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentPoint.Value, epsilon);
-            var currentCeilingQuantizedValue = PlaUtils.GetCeilingQuantizedValue(currentPoint.Value, epsilon);
+            // In cases of all points having the same value, epsilon will be 0, so assign default values.
+            var currentFloorQuantizedValue = currentPoint.Value;
+            var currentCeilingQuantizedValue = currentPoint.Value;
+
+            if (epsilon > 0)
+            {
+                currentFloorQuantizedValue = PlaUtils.GetFloorQuantizedValue(currentPoint.Value, epsilon);
+                currentCeilingQuantizedValue = PlaUtils.GetCeilingQuantizedValue(currentPoint.Value, epsilon);
+            }
+
             var currentFloorUpperBoundGradient = double.PositiveInfinity;
             var currentFloorLowerBoundGradient = double.NegativeInfinity;
             var currentCeilingUpperBoundGradient = double.PositiveInfinity;

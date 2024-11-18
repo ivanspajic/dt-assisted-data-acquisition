@@ -7,9 +7,9 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
 {
     internal static class CsvFileUtils
     {
-        public static List<Point> ReadTimeSeriesFromCsvWithStartingTimestamp(string filepath, int startIndexInclusive, int bucketSize)
+        public static List<List<Point>> ReadCsvTimeSeriesInBuckets(string filepath, int bucketSize)
         {
-            var timeSeries = new List<Point>();
+            var timeSeriesInBuckets = new List<List<Point>>();
 
             var csvHelperConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -21,28 +21,27 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
             using (var csvReader = new CsvReader(streamReader, csvHelperConfig))
             {
                 var i = 0;
+                var j = 0;
 
-                while (i < startIndexInclusive)
+                var currentBucket = new List<Point>();
+                while (csvReader.Read())
                 {
-                    csvReader.Read();
+                    if (j == bucketSize)
+                    {
+                        timeSeriesInBuckets.Add(currentBucket);
+
+                        currentBucket = [];
+                        j = 0;
+                    }
+
+                    currentBucket.Add(csvReader.GetRecord<Point>());
 
                     i++;
-                }
-
-                while (csvReader.Read() && i < startIndexInclusive + bucketSize)
-                {
-                    timeSeries.Add(csvReader.GetRecord<Point>());
-
-                    i++;
+                    j++;
                 }
             }
 
-            return timeSeries;
-        }
-
-        public static List<Point> ReadTimeSeriesFromCsv(string filepath, int bucketSize)
-        {
-            return ReadTimeSeriesFromCsvWithStartingTimestamp(filepath, 0, bucketSize);
+            return timeSeriesInBuckets;
         }
 
         public static void WriteTestResultsToCsv<T>(string filepath, List<T> testResults)
