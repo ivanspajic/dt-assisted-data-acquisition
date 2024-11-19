@@ -210,16 +210,18 @@ namespace Sim_Mix_Custom_Piece_Tests
         [Fact]
         public void Custom_Piece_compression_test_results_in_csv_file()
         {
-            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", "Custom-Piece Temperature Compression Test Results.csv");
+            // Pick a single data set at a time due to the speed of this test.
+            var dataSet = TestData.DataSets[5];
+
+            var dataSetFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.DataSets[5]);
+
+            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", $"Custom-Piece {dataSet} Compression Test Results.csv");
             var testResults = new List<CompressionRatioTestResults>();
             var testData = new TestData();
 
-            // Pick a single data set at a time due to the speed of this test.
-            var dataSet = Path.Combine(TestData.BaseDataFilepath, TestData.DataSets[5]);
-
             foreach (var bucketSize in TestData.BucketSizes)
             {
-                var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
+                var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSetFilepath, bucketSize);
 
                 foreach (var epsilonPercentage in TestData.EpsilonPercentages)
                 {
