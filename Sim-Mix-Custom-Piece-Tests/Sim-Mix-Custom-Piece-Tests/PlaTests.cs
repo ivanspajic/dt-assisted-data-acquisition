@@ -211,13 +211,12 @@ namespace Sim_Mix_Custom_Piece_Tests
         public void Custom_Piece_compression_test_results_in_csv_file()
         {
             // Pick a single data set at a time due to the speed of this test.
-            var dataSet = TestData.DataSets[5];
+            var dataSet = TestData.DataSets[0];
 
-            var dataSetFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.DataSets[5]);
+            var dataSetFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.DataSetPath, dataSet);
 
             var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", $"Custom-Piece {dataSet} Compression Test Results.csv");
             var testResults = new List<CompressionRatioTestResults>();
-            var testData = new TestData();
 
             foreach (var bucketSize in TestData.BucketSizes)
             {

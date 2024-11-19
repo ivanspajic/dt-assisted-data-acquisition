@@ -11,13 +11,13 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
 
         public static readonly string[] DataSets =
         {
-            Path.Combine(DataSetPath, "Turbidity#16340 - Analog Sensors #0.csv"),
-            //Path.Combine(DataSetPath, "Pressure - Pressure Sensor #1955.csv"), // Longer data set, could make tests considerably slower.
-            Path.Combine(DataSetPath, "Salinity - Conductivity Sensor #41.csv"),
-            Path.Combine(DataSetPath, "AirSaturation - Oxygen Optode #754.csv"),
-            Path.Combine(DataSetPath, "Chlorophyll#2103755 - Analog Sensors #0.csv"),
-            Path.Combine(DataSetPath, "Density - Conductivity Sensor #41.csv"),
-            Path.Combine(DataSetPath, "Temperature - Temperature Sensor #1063.csv")
+            "Turbidity#16340 - Analog Sensors #0.csv",
+            //"Pressure - Pressure Sensor #1955.csv", // Longer data set, could make tests considerably slower.
+            "Salinity - Conductivity Sensor #41.csv",
+            "AirSaturation - Oxygen Optode #754.csv",
+            "Chlorophyll#2103755 - Analog Sensors #0.csv",
+            "Density - Conductivity Sensor #41.csv",
+            "Temperature - Temperature Sensor #1063.csv"
         };
 
         public static readonly int[] BucketSizes =
@@ -38,7 +38,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
                 {
                     foreach (var epsilonPercentage in EpsilonPercentages)
                     {
-                        var filepath = Path.Combine(BaseDataFilepath, dataSet);
+                        var filepath = Path.Combine(BaseDataFilepath, DataSetPath, dataSet);
 
                         yield return new object[] { filepath, bucketSize, epsilonPercentage };
                     }
