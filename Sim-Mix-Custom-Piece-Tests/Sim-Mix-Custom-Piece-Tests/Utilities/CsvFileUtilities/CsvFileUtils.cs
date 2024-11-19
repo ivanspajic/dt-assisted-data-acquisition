@@ -2,7 +2,6 @@
 using CsvHelper;
 using System.Globalization;
 using SimMixCustomPiece.Models;
-using CsvHelper.Configuration.Attributes;
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
 {
@@ -31,34 +30,10 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
             using (var streamReader = new StreamReader(filepath))
             using (var csvReader = new CsvReader(streamReader, csvHelperConfig))
             {
-                var i = 0;
-
-                while (i < startIndex)
-                {
-                    csvReader.Read();
-
-                    i++;
-                }
-
-                var j = 0;
-                var currentBucket = new List<Point>();
-                while (csvReader.Read())
-                {
-                    if (j == bucketSize)
-                    {
-                        timeSeriesInBuckets.Add(currentBucket);
-
-                        currentBucket = [];
-                        j = 0;
-                    }
-
-                    currentBucket.Add(csvReader.GetRecord<Point>());
-
-                    i++;
-                    j++;
-                }
+                var chunks = csvReader.GetRecords<Point>().Skip((int)startIndex).Chunk(bucketSize);
+                timeSeriesInBuckets = chunks.Select(chunk => chunk.ToList()).ToList();
+                // last bucket potentially incomplete
             }
-
             return timeSeriesInBuckets;
         }
 
