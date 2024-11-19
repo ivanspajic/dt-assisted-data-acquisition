@@ -12,7 +12,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
         public static readonly string[] DataSets =
         {
             Path.Combine(DataSetPath, "Turbidity#16340 - Analog Sensors #0.csv"),
-            Path.Combine(DataSetPath, "Pressure - Pressure Sensor #1955.csv"),
+            //Path.Combine(DataSetPath, "Pressure - Pressure Sensor #1955.csv"), // Longer data set, could make tests considerably slower.
             Path.Combine(DataSetPath, "Salinity - Conductivity Sensor #41.csv"),
             Path.Combine(DataSetPath, "AirSaturation - Oxygen Optode #754.csv"),
             Path.Combine(DataSetPath, "Chlorophyll#2103755 - Analog Sensors #0.csv"),
@@ -22,7 +22,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
 
         public static readonly int[] BucketSizes =
         {
-            5, 7, 10, 13
+            7, 10, 13, 15
         };
 
         public static readonly double[] EpsilonPercentages =
