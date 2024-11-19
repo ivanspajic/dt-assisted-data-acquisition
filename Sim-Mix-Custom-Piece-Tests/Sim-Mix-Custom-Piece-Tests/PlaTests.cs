@@ -219,6 +219,8 @@ namespace Sim_Mix_Custom_Piece_Tests
 
             foreach (var bucketSize in TestData.BucketSizes)
             {
+                var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
+
                 foreach (var epsilonPercentage in TestData.EpsilonPercentages)
                 {
                     Debug.WriteLine("Data Set: " + dataSet);
@@ -226,8 +228,6 @@ namespace Sim_Mix_Custom_Piece_Tests
                     Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
                     Debug.WriteLine("");
                     Debug.WriteLine("");
-
-                    var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
 
                     // Use the average compression ratio for this set of test data.
                     var averageCompressionRatioList = new List<double>();
