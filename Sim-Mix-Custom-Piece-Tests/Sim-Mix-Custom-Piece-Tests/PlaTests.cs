@@ -5,6 +5,7 @@ using Sim_Mix_Custom_Piece_Tests.Utilities.TestModels;
 using SimMixCustomPiece.Algorithms;
 using SimMixCustomPiece.Algorithms.Utilities;
 using SimMixCustomPiece.Models;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace Sim_Mix_Custom_Piece_Tests
@@ -231,15 +232,15 @@ namespace Sim_Mix_Custom_Piece_Tests
                     Debug.WriteLine("");
 
                     // Use the average compression ratio for this set of test data.
-                    var averageCompressionRatioList = new List<double>();
+                    var averageCompressionRatioList = new ConcurrentBag<double>();
 
-                    foreach (var timeSeries in timeSeriesInBuckets)
+                    Parallel.ForEach(timeSeriesInBuckets, timeSeries =>
                     {
                         var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage);
                         var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
                         averageCompressionRatioList.Add(compressionRatio);
-                    }
+                    });
 
                     var csvTestResults = new CompressionRatioTestResults
                     {
@@ -370,24 +371,24 @@ namespace Sim_Mix_Custom_Piece_Tests
                 var timeSeriesEndIndex = 100 * bucketSize;
 
                 // Start at a required index to have enough earlier points available for subsequent predictions.
+                var previousTimeSeriesPortion = CsvFileUtils.ReadCsvTimeSeriesBucket(dataSet, DigitalTwin.RequiredNumberOfPreviousPointsForPrediction - bucketSize, bucketSize);
                 for (var i = DigitalTwin.RequiredNumberOfPreviousPointsForPrediction; i < timeSeriesEndIndex; i += bucketSize)
                 {
-                    Debug.WriteLine("Data Set: " + dataSet);
-                    Debug.WriteLine("Bucket Size: " + bucketSize);
-                    Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
-                    Debug.WriteLine("Timestamp: " + i);
-                    Debug.WriteLine("");
-                    Debug.WriteLine("");
+                    Console.WriteLine("Data Set: " + dataSet);
+                    Console.WriteLine("Bucket Size: " + bucketSize);
+                    Console.WriteLine("Epsilon Percentage: " + epsilonPercentage);
+                    Console.WriteLine("Timestamp: " + i);
+                    Console.WriteLine("");
+                    Console.WriteLine("");
 
                     // Get the actual portion of the time series being predicted and make a prediction for the same portion.
                     var actualTimeSeriesPortion = CsvFileUtils.ReadCsvTimeSeriesBucket(dataSet, i, bucketSize);
-
-                    var previousTimeSeriesPortion = CsvFileUtils.ReadCsvTimeSeriesBucket(dataSet, i - bucketSize, bucketSize);
+               
                     var predictedTimeSeriesPortion = DigitalTwin.GetPredictedTimeSeriesPortion(dataSet, previousTimeSeriesPortion, TestData.SamplingInterval);
 
                     // Simulate the sending of the compressed predicted time series portion to the sea-borne device for comparison.
-                    var compressedPredictedTimeSeriesPortion = CustomPiece.Compress(predictedTimeSeriesPortion, epsilonPercentage);
-                    var decompressedPredictedTimeSeriesPortion = CustomPiece.Decompress(compressedPredictedTimeSeriesPortion, predictedTimeSeriesPortion[^1].SimpleTimestamp);
+                    var compressedPredictedTimeSeriesPortion = MixPiece.Compress(predictedTimeSeriesPortion, epsilonPercentage);
+                    var decompressedPredictedTimeSeriesPortion = MixPiece.Decompress(compressedPredictedTimeSeriesPortion, predictedTimeSeriesPortion[^1].SimpleTimestamp);
 
                     // Check the average deviation percentage.
                     var averageDeviationPercentage = GetPercentageDeviationFromActual(actualTimeSeriesPortion, decompressedPredictedTimeSeriesPortion);
@@ -413,6 +414,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                     if (testResult.AverageDeviationPercentage > testResult.ZetaPercentage)
                         testResult.BytesTransmitted = testResult.CompressedTimeSeriesSizeInBytes;
 
+                    previousTimeSeriesPortion = predictedTimeSeriesPortion;
                     testResults.Add(testResult);
                 }
             }
