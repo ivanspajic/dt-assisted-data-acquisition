@@ -5,8 +5,10 @@ using Sim_Mix_Custom_Piece_Tests.Utilities.TestModels;
 using SimMixCustomPiece.Algorithms;
 using SimMixCustomPiece.Algorithms.Utilities;
 using SimMixCustomPiece.Models;
+using SimMixCustomPiece.Models.LinearSegments;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Sim_Mix_Custom_Piece_Tests
 {
@@ -135,18 +137,31 @@ namespace Sim_Mix_Custom_Piece_Tests
                 var bucketSize = (int)testDataPoint[1];
                 var epsilonPercentage = (double)testDataPoint[2];
 
+                Debug.WriteLine("");
+                Debug.WriteLine("Data Set: " + dataSet);
+                Debug.WriteLine("Bucket Size: " + bucketSize);
+                Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
+                Debug.WriteLine("");
+
                 var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
 
                 // Use the average compression ratio for this set of test data.
-                var averageCompressionRatioList = new List<double>();
+                var averageCompressionRatioList = new ConcurrentBag<double>();
 
-                foreach (var timeSeries in timeSeriesInBuckets)
+                var parallelOptions = new ParallelOptions
                 {
-                    var compressedTimeSeries = SimPiece.Compress(timeSeries, epsilonPercentage);
-                    var compressionRatio = PlaUtils.GetCompressionRatioForSimPiece(timeSeries, compressedTimeSeries);
+                    MaxDegreeOfParallelism = 4
+                };
+
+                Parallel.ForEach(timeSeriesInBuckets, parallelOptions, timeSeries =>
+                {
+                    Debug.WriteLine("Timestamp: " + timeSeries[0].SimpleTimestamp);
+
+                    var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage);
+                    var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
                     averageCompressionRatioList.Add(compressionRatio);
-                }
+                });
 
                 var csvTestResults = new CompressionRatioTestResults
                 {
@@ -175,24 +190,31 @@ namespace Sim_Mix_Custom_Piece_Tests
                 var bucketSize = (int)testDataPoint[1];
                 var epsilonPercentage = (double)testDataPoint[2];
 
+                Debug.WriteLine("");
                 Debug.WriteLine("Data Set: " + dataSet);
                 Debug.WriteLine("Bucket Size: " + bucketSize);
                 Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
-                Debug.WriteLine("");
                 Debug.WriteLine("");
 
                 var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
 
                 // Use the average compression ratio for this set of test data.
-                var averageCompressionRatioList = new List<double>();
+                var averageCompressionRatioList = new ConcurrentBag<double>();
 
-                foreach (var timeSeries in timeSeriesInBuckets)
+                var parallelOptions = new ParallelOptions
                 {
-                    var compressedTimeSeries = MixPiece.Compress(timeSeries, epsilonPercentage);
+                    MaxDegreeOfParallelism = 4
+                };
+
+                Parallel.ForEach(timeSeriesInBuckets, parallelOptions, timeSeries =>
+                {
+                    Debug.WriteLine("Timestamp: " + timeSeries[0].SimpleTimestamp);
+
+                    var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage);
                     var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
                     averageCompressionRatioList.Add(compressionRatio);
-                }
+                });
 
                 var csvTestResults = new CompressionRatioTestResults
                 {
@@ -225,17 +247,24 @@ namespace Sim_Mix_Custom_Piece_Tests
 
                 foreach (var epsilonPercentage in TestData.EpsilonPercentages)
                 {
+                    Debug.WriteLine("");
                     Debug.WriteLine("Data Set: " + dataSet);
                     Debug.WriteLine("Bucket Size: " + bucketSize);
                     Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
-                    Debug.WriteLine("");
                     Debug.WriteLine("");
 
                     // Use the average compression ratio for this set of test data.
                     var averageCompressionRatioList = new ConcurrentBag<double>();
 
-                    Parallel.ForEach(timeSeriesInBuckets, timeSeries =>
+                    var parallelOptions = new ParallelOptions
                     {
+                        MaxDegreeOfParallelism = 4
+                    };
+
+                    Parallel.ForEach(timeSeriesInBuckets, parallelOptions, timeSeries =>
+                    {
+                        Debug.WriteLine("Timestamp: " + timeSeries[0].SimpleTimestamp);
+
                         var compressedTimeSeries = CustomPiece.Compress(timeSeries, epsilonPercentage);
                         var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
 
@@ -374,12 +403,12 @@ namespace Sim_Mix_Custom_Piece_Tests
                 var previousTimeSeriesPortion = CsvFileUtils.ReadCsvTimeSeriesBucket(dataSet, DigitalTwin.RequiredNumberOfPreviousPointsForPrediction - bucketSize, bucketSize);
                 for (var i = DigitalTwin.RequiredNumberOfPreviousPointsForPrediction; i < timeSeriesEndIndex; i += bucketSize)
                 {
-                    Console.WriteLine("Data Set: " + dataSet);
-                    Console.WriteLine("Bucket Size: " + bucketSize);
-                    Console.WriteLine("Epsilon Percentage: " + epsilonPercentage);
-                    Console.WriteLine("Timestamp: " + i);
-                    Console.WriteLine("");
-                    Console.WriteLine("");
+                    Debug.WriteLine("");
+                    Debug.WriteLine("Data Set: " + dataSet);
+                    Debug.WriteLine("Bucket Size: " + bucketSize);
+                    Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
+                    Debug.WriteLine("Timestamp: " + i);
+                    Debug.WriteLine("");
 
                     // Get the actual portion of the time series being predicted and make a prediction for the same portion.
                     var actualTimeSeriesPortion = CsvFileUtils.ReadCsvTimeSeriesBucket(dataSet, i, bucketSize);
@@ -387,8 +416,8 @@ namespace Sim_Mix_Custom_Piece_Tests
                     var predictedTimeSeriesPortion = DigitalTwin.GetPredictedTimeSeriesPortion(dataSet, previousTimeSeriesPortion, TestData.SamplingInterval);
 
                     // Simulate the sending of the compressed predicted time series portion to the sea-borne device for comparison.
-                    var compressedPredictedTimeSeriesPortion = MixPiece.Compress(predictedTimeSeriesPortion, epsilonPercentage);
-                    var decompressedPredictedTimeSeriesPortion = MixPiece.Decompress(compressedPredictedTimeSeriesPortion, predictedTimeSeriesPortion[^1].SimpleTimestamp);
+                    var compressedPredictedTimeSeriesPortion = CustomPiece.Compress(predictedTimeSeriesPortion, epsilonPercentage);
+                    var decompressedPredictedTimeSeriesPortion = CustomPiece.Decompress(compressedPredictedTimeSeriesPortion, predictedTimeSeriesPortion[^1].SimpleTimestamp);
 
                     // Check the average deviation percentage.
                     var averageDeviationPercentage = GetPercentageDeviationFromActual(actualTimeSeriesPortion, decompressedPredictedTimeSeriesPortion);
@@ -418,6 +447,95 @@ namespace Sim_Mix_Custom_Piece_Tests
                     testResults.Add(testResult);
                 }
             }
+
+            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+        }
+
+        [Fact]
+        public void Table_1_timed_compression_results_Mix_Piece_Custom_Piece()
+        {
+            // Turbidity data set.
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 5, CustomPiece.Compress);
+
+            // Salinity data set.
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 5, CustomPiece.Compress);
+        }
+
+        private static void Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(string dataSet,
+            int bucketSize,
+            double epsilonPercentage,
+            Func<List<Point>, double, Tuple<List<GroupedLinearSegment>, List<HalfGroupedLinearSegment>, List<UngroupedLinearSegment>>> compressor)
+        {            
+            var dataSetFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.DataSetPath, dataSet);
+            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, "test-results", $"Table 1 Data Set {dataSet} " +
+                $"Bucket Size {bucketSize} Epsilon {epsilonPercentage} Compressor {compressor.Method.DeclaringType!.Name}.csv");
+            var testResults = new List<Table1TestResults>();
+
+            var stopwatch = new Stopwatch();
+
+            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSetFilepath, bucketSize);
+
+            Debug.WriteLine("");
+            Debug.WriteLine("Data Set: " + dataSet);
+            Debug.WriteLine("Bucket Size: " + bucketSize);
+            Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
+            Debug.WriteLine("");
+
+            // Use the average compression ratio for this set of test data.
+            var averageCompressionRatioList = new ConcurrentBag<double>();
+
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 4
+            };
+
+            stopwatch.Start();
+
+            Parallel.ForEach(timeSeriesInBuckets, parallelOptions, timeSeries =>
+            {
+                Debug.WriteLine("Timestamp: " + timeSeries[0].SimpleTimestamp);
+
+                var compressedTimeSeries = compressor(timeSeries, epsilonPercentage);
+                var compressionRatio = PlaUtils.GetCompressionRatioForMixPiece(timeSeries, compressedTimeSeries);
+
+                averageCompressionRatioList.Add(compressionRatio);
+            });
+
+            stopwatch.Stop();
+
+            var csvTestResults = new Table1TestResults
+            {
+                BucketSize = bucketSize,
+                CompressionRatio = averageCompressionRatioList.Sum() / averageCompressionRatioList.Count,
+                DataSet = dataSet,
+                EpsilonPercentage = epsilonPercentage,
+                Compressor = compressor.Method.DeclaringType.Name,
+                ElapsedMilliseconds = stopwatch.ElapsedMilliseconds
+            };
+
+            testResults.Add(csvTestResults);
 
             CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }

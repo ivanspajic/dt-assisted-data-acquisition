@@ -27,14 +27,14 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
                 Delimiter = ","
             };
 
-            using (var streamReader = new StreamReader(filepath))
-            using (var csvReader = new CsvReader(streamReader, csvHelperConfig))
-            {
-                var chunks = csvReader.GetRecords<Point>().Skip((int)startIndex).Chunk(bucketSize);
-                timeSeriesInBuckets = chunks.Select(chunk => chunk.ToList()).ToList();
-                // last bucket potentially incomplete
-            }
-            return timeSeriesInBuckets;
+            using var streamReader = new StreamReader(filepath);
+            using var csvReader = new CsvReader(streamReader, csvHelperConfig);
+
+            return csvReader.GetRecords<Point>()
+                .Skip((int)startIndex)
+                .Chunk(bucketSize)
+                .Select(chunk => chunk.ToList())
+                .ToList();
         }
 
         /// <summary>
@@ -49,45 +49,6 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
         }
 
         /// <summary>
-        /// Reads a whole time series from a CSV file.
-        /// </summary>
-        /// <param name="filepath"></param>
-        /// <param name="startIndex"></param>
-        /// <returns></returns>
-        public static List<Point> ReadCsvTimeSeries(string filepath, long startIndex)
-        {
-            var timeSeries = new List<Point>();
-
-            var csvHelperConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                HasHeaderRecord = false,
-                Delimiter = ","
-            };
-
-            using (var streamReader = new StreamReader(filepath))
-            using (var csvReader = new CsvReader(streamReader, csvHelperConfig))
-            {
-                var i = 0;
-
-                while (i < startIndex)
-                {
-                    csvReader.Read();
-
-                    i++;
-                }
-
-                while (csvReader.Read())
-                {
-                    timeSeries.Add(csvReader.GetRecord<Point>());
-
-                    i++;
-                }
-            }
-
-            return timeSeries;
-        }
-
-        /// <summary>
         /// Reads a portion of a time series from a CSV file.
         /// </summary>
         /// <param name="filepath"></param>
@@ -96,40 +57,19 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
         /// <returns></returns>
         public static List<Point> ReadCsvTimeSeriesBucket(string filepath, long startIndex, int bucketSize)
         {
-            var timeSeries = new List<Point>();
-
             var csvHelperConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = false,
                 Delimiter = ","
             };
 
-            using (var streamReader = new StreamReader(filepath))
-            using (var csvReader = new CsvReader(streamReader, csvHelperConfig))
-            {
-                var i = 0;
+            using var streamReader = new StreamReader(filepath);
+            using var csvReader = new CsvReader(streamReader, csvHelperConfig);
 
-                while (i < startIndex)
-                {
-                    csvReader.Read();
-
-                    i++;
-                }
-
-                var j = 0;
-                while (csvReader.Read() && j < bucketSize)
-                {
-                    timeSeries.Add(csvReader.GetRecord<Point>());
-
-                    i++;
-                    j++;
-                }
-            }
-
-            if (timeSeries.Count < bucketSize)
-                return [];
-
-            return timeSeries;
+            return csvReader.GetRecords<Point>()
+                .Skip((int)startIndex)
+                .Take(bucketSize)
+                .ToList();
         }
 
         /// <summary>
@@ -146,11 +86,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
             csvWriter.WriteHeader<T>();
             csvWriter.NextRecord();
 
-            foreach (var testResult in testResults)
-            {
-                csvWriter.WriteRecord(testResult);
-                csvWriter.NextRecord();
-            }
+            csvWriter.WriteRecords(testResults);
         }
     }
 }
