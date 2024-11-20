@@ -1,2 +1,2 @@
 DataSet,BucketSize,EpsilonPercentage,CompressionRatio,Compressor,ElapsedMilliseconds
-Turbidity#16340 - Analog Sensors #0.csv,10,3,0.796468835796103,CustomPiece,8309
+Salinity - Conductivity Sensor #41.csv,15,5,1.068482754711444,MixPiece,3365
