@@ -8,7 +8,6 @@ using SimMixCustomPiece.Models;
 using SimMixCustomPiece.Models.LinearSegments;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Sim_Mix_Custom_Piece_Tests
 {
@@ -487,7 +486,7 @@ namespace Sim_Mix_Custom_Piece_Tests
             //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 5, MixPiece.Compress);
             //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 5, CustomPiece.Compress);
             //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 3, CustomPiece.Compress); // Not yet run.
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 3, CustomPiece.Compress);
             //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 5, MixPiece.Compress);
             //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 5, CustomPiece.Compress); // Not yet run.
         }
