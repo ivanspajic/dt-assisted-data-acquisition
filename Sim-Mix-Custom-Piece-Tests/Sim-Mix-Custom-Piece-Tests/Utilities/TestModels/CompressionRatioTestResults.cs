@@ -2,7 +2,7 @@
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestModels
 {
-    internal class CompressionRatioTestResults
+    public class CompressionRatioTestResults
     {
         [Index(0)]
         public string DataSet { get; set; }

@@ -1,0 +1,2 @@
+DataSet,BucketSize,EpsilonPercentage,CompressionRatio,Compressor,ElapsedMilliseconds
+Salinity - Conductivity Sensor #41.csv,10,3,0.8169873080670682,CustomPiece,31048
