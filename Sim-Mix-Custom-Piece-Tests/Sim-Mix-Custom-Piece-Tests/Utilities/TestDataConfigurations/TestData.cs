@@ -4,9 +4,10 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
 {
     internal class TestData : IEnumerable<object[]>
     {
-        public const double ZetaPercentage = 2;
+        public const double ZetaPercentage = 1;
         public static readonly string BaseDataFilepath = Path.Combine("C:", "dev", "low-bandwidth-dt", "data");
         public static readonly string DataSetPath = Path.Combine("data-sets", "austevoll-data");
+        public const string TestResultsPath = "test-results";
         public static readonly TimeSpan SamplingInterval = TimeSpan.FromMinutes(30);
 
         public static readonly string[] DataSets =

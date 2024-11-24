@@ -2,6 +2,7 @@
 using CsvHelper;
 using System.Globalization;
 using SimMixCustomPiece.Models;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
 {
@@ -33,6 +34,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
             return csvReader.GetRecords<Point>()
                 .Skip((int)startIndex)
                 .Chunk(bucketSize)
+                .Where(bucket => bucket.Length == bucketSize)
                 .Select(chunk => chunk.ToList())
                 .ToList();
         }

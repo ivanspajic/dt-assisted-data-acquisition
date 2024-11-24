@@ -11,21 +11,18 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestModels
         public double Epsilon { get; set; }
 
         [Index(2)]
-        public long StartTimestamp { get; set; }
+        public int BucketSize { get; set; }
 
         [Index(3)]
-        public long EndTimestamp { get; set; }
+        public double ZetaPercentage { get; set; }
 
         [Index(4)]
         public double AverageDeviationPercentage { get; set; }
 
         [Index(5)]
-        public double ZetaPercentage { get; set; }
+        public int TotalCompressedTimeSeriesBytes { get; set; }
 
         [Index(6)]
-        public int CompressedTimeSeriesSizeInBytes { get; set; }
-
-        [Index(6)]
-        public double BytesTransmitted { get; set; }
+        public double TotalTransmittedBytes { get; set; }
     }
 }
