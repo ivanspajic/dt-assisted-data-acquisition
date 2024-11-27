@@ -75,6 +75,35 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
         }
 
         /// <summary>
+        /// Reads a time series in a specific number of buckets evenly distributed across it.
+        /// </summary>
+        /// <param name="filepath"></param>
+        /// <param name="bucketSize"></param>
+        /// <param name="bucketNumber"></param>
+        /// <returns></returns>
+        public static List<List<Point>> ReadCsvTimeSeriesInSpecificBuckets(string filepath, int bucketSize, int bucketNumber)
+        {
+            var csvHelperConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = false,
+                Delimiter = ","
+            };
+
+            using var streamReader = new StreamReader(filepath);
+            using var csvReader = new CsvReader(streamReader, csvHelperConfig);
+
+            var records = csvReader.GetRecords<Point>()
+                .ToList();
+            var chunkNumber = (int)Math.Floor((double)records.Count / bucketNumber);
+
+            return records.Chunk(chunkNumber)
+                .Select(chunk => chunk.Take(bucketSize).ToList())
+                .Where(bucket => bucket.Count == bucketSize)
+                .Take(bucketNumber)
+                .ToList();
+        }
+
+        /// <summary>
         /// Writes results to a CSV file.
         /// </summary>
         /// <typeparam name="T"></typeparam>
