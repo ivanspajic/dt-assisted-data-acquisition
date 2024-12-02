@@ -1,0 +1,2 @@
+DataSet,BucketSize,EpsilonPercentage,CompressionRatio,Compressor,ElapsedMilliseconds
+Temperature - Temperature Sensor #1063.csv,15,3,0.7955012775011101,MixPiece,1274

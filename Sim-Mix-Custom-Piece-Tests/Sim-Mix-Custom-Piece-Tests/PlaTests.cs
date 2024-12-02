@@ -7,7 +7,6 @@ using SimMixCustomPiece.Algorithms.Utilities;
 using SimMixCustomPiece.Models;
 using SimMixCustomPiece.Models.LinearSegments;
 using System.Collections.Concurrent;
-using System.Data;
 using System.Diagnostics;
 
 namespace Sim_Mix_Custom_Piece_Tests
@@ -460,56 +459,82 @@ namespace Sim_Mix_Custom_Piece_Tests
         {
             // Table 1 results.
             // Turbidity data set.
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 3, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 5, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 5, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 7, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 7, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 3, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 5, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 5, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 7, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 7, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 3, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 5, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 5, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 7, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 7, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 3, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 5, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 5, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 7, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 10, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 13, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 15, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[0], 16, 7, CustomPiece.Compress);
 
             // Salinity data set.
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 3, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 5, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 5, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 7, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 7, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 3, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 5, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 5, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 7, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 7, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 3, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 5, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 5, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 7, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 7, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 3, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 3, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 5, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 5, CustomPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 7, MixPiece.Compress);
-            //Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 10, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 13, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 15, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[1], 16, 7, CustomPiece.Compress);
+
+            // Temperature data set.
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 10, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 10, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 10, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 10, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 10, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 10, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 13, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 13, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 13, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 13, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 13, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 13, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 15, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 15, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 15, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 15, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 15, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 15, 7, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 16, 3, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 16, 3, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 16, 5, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 16, 5, CustomPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 16, 7, MixPiece.Compress);
+            Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(TestData.DataSets[5], 16, 7, CustomPiece.Compress);
         }
 
         private static void Mix_Piece_based_algorithm_timed_compression_ratios_in_csv(string dataSet,
