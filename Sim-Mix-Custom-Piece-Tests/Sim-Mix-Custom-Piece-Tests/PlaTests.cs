@@ -1,5 +1,4 @@
 using Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities;
-using Sim_Mix_Custom_Piece_Tests.Utilities.Systems;
 using Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations;
 using Sim_Mix_Custom_Piece_Tests.Utilities.TestModels;
 using SimMixCustomPiece.Algorithms;
@@ -377,75 +376,6 @@ namespace Sim_Mix_Custom_Piece_Tests
                         ReconstructedValue = decompressedTimeSeries[i].Value,
                         LowerBound = decompressedTimeSeries[i].Value - epsilon,
                         UpperBound = decompressedTimeSeries[i].Value + epsilon
-                    });
-                }
-            }
-
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
-        }
-
-        [Fact]
-        public void Digital_twin_temperature_prediction_data_savings_in_csv_file()
-        {
-            var testResults = new List<DigitalTwinPredictionTestResults>();
-            var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.TestResultsPath, "Digital Twin Prediction Test Results.csv");
-            var dataSet = Path.Combine(TestData.BaseDataFilepath, TestData.DataSetPath, "Temperature - Temperature Sensor #1063.csv");
-
-            foreach (var bucketSize in TestData.BucketSizes)
-            {
-                foreach (var epsilonPercentage in TestData.EpsilonPercentages)
-                {
-                    Debug.WriteLine("Data Set: " + dataSet);
-                    Debug.WriteLine("Bucket Size: " + bucketSize);
-                    Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
-                    Debug.WriteLine("");
-                    Debug.WriteLine("");
-
-                    var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, DigitalTwin.RequiredNumberOfPreviousPointsForPrediction + 1, bucketSize);
-
-                    var averageDeviationPercentageList = new ConcurrentBag<double>();
-                    var totalCompressedTimeSeriesBytes = 0;
-                    var totalTransmittedTimeSeriesBytes = 0;
-
-                    var parallelOptions = new ParallelOptions
-                    {
-                        MaxDegreeOfParallelism = 4
-                    };
-
-                    Parallel.ForEach(timeSeriesInBuckets, parallelOptions, actualTimeSeries =>
-                    {
-                        // Get the required previous time series and make a prediction.
-                        var previousTimeSeries = CsvFileUtils.ReadCsvTimeSeriesBucket(dataSet, actualTimeSeries[0].SimpleTimestamp - bucketSize, bucketSize);
-                        var predictedTimeSeries = DigitalTwin.GetPredictedTimeSeriesPortion(dataSet, previousTimeSeries, TestData.SamplingInterval);
-
-                        // Simulate the sending of the compressed predicted time series to the sea-borne device for comparison.
-                        var compressedPredictedTimeSeries = MixPiece.Compress(predictedTimeSeries, epsilonPercentage);
-                        var decompressedPredictedTimeSeries = MixPiece.Decompress(compressedPredictedTimeSeries, predictedTimeSeries[^1].SimpleTimestamp);
-
-                        // Check the average deviation percentage against the time series that was sent.
-                        var averageDeviationPercentage = GetPercentageDeviationFromActual(actualTimeSeries, decompressedPredictedTimeSeries);
-                        averageDeviationPercentageList.Add(averageDeviationPercentage);
-
-                        // Compress the actual time series and get its size.
-                        var compressedActualTimeSeries = MixPiece.Compress(actualTimeSeries, epsilonPercentage);
-                        var compressedActualTimeSeriesSizeInBytes = PlaUtils.GetCompressedMixPieceTimeSeriesSizeInBytes(compressedActualTimeSeries);
-                        totalCompressedTimeSeriesBytes += compressedActualTimeSeriesSizeInBytes;
-
-                        // Check if the deviation is greater than zeta, in which case the prediction is wrong, and the compressed time series needs to be sent from the
-                        // sea-borne device.
-                        if (averageDeviationPercentage > TestData.ZetaPercentage)
-                            totalTransmittedTimeSeriesBytes += compressedActualTimeSeriesSizeInBytes;
-                    });
-
-                    testResults.Add(new DigitalTwinPredictionTestResults
-                    {
-                        DataSet = dataSet,
-                        Epsilon = epsilonPercentage,
-                        BucketSize = bucketSize,
-                        ZetaPercentage = TestData.ZetaPercentage,
-                        AverageDeviationPercentage = averageDeviationPercentageList.Sum() / averageDeviationPercentageList.Count,
-                        TotalCompressedTimeSeriesBytes = totalCompressedTimeSeriesBytes,
-                        TotalTransmittedBytes = totalTransmittedTimeSeriesBytes
                     });
                 }
             }
