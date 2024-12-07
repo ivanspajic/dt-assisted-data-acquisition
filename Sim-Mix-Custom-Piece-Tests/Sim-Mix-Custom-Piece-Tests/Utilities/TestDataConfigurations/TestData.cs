@@ -10,6 +10,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
         public const string TestResultsPath = "test-results";
         public static readonly TimeSpan SamplingInterval = TimeSpan.FromMinutes(30);
 
+        // Filenames of data sets.
         public static readonly string[] DataSets =
         {
             "Turbidity#16340 - Analog Sensors #0.csv",
@@ -21,16 +22,19 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
             "Temperature - Temperature Sensor #1063.csv"
         };
 
+        // A list of bucket sizes.
         public static readonly int[] BucketSizes =
         {
             7, 10, 13, 15
         };
 
+        // A list of epsilon percentages.
         public static readonly double[] EpsilonPercentages =
         {
             0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5
         };
 
+        // Used for test parameter enumeration.
         public IEnumerator<object[]> GetEnumerator()
         {
             foreach (var dataSet in DataSets)

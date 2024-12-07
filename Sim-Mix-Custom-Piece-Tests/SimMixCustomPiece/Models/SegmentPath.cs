@@ -1,7 +1,7 @@
 ﻿namespace SimMixCustomPiece.Models
 {
     /// <summary>
-    /// Represents a node in a tree of possible <see cref="Segment"/> paths constructed from a time series.
+    /// Represents a node in a tree of possible <see cref="Models.Segment"/> paths constructed from a time series.
     /// </summary>
     public class SegmentPath
     {

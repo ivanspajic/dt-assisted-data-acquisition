@@ -524,6 +524,14 @@ namespace Sim_Mix_Custom_Piece_Tests
             CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
         }
 
+        /// <summary>
+        /// Can be used for running through data sets not in entirety but in specific numbers of buckets.
+        /// </summary>
+        /// <param name="dataSet"></param>
+        /// <param name="bucketSize"></param>
+        /// <param name="bucketNumber"></param>
+        /// <param name="epsilonPercentage"></param>
+        /// <param name="compressor"></param>
         private static void Mix_Piece_based_algorithm_timed_compression_ratios_specified_buckets_in_csv(string dataSet,
             int bucketSize,
             int bucketNumber,

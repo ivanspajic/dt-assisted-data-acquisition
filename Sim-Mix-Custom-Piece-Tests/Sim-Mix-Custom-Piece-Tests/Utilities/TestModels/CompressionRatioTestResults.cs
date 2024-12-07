@@ -2,6 +2,9 @@
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestModels
 {
+    /// <summary>
+    /// Used for writing compression ratio test results to CSV files.
+    /// </summary>
     public class CompressionRatioTestResults
     {
         [Index(0)]

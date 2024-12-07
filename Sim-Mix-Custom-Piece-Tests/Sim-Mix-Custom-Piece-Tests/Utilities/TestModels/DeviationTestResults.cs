@@ -2,6 +2,9 @@
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestModels
 {
+    /// <summary>
+    /// Used for writing deviation test results to CSV files.
+    /// </summary>
     internal class DeviationTestResults
     {
         [Index(0)]

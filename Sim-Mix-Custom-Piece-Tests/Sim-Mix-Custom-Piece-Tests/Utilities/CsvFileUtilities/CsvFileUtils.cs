@@ -2,12 +2,11 @@
 using CsvHelper;
 using System.Globalization;
 using SimMixCustomPiece.Models;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities
 {
     /// <summary>
-    /// Helps with reading from and writing to CSV files. Some methods are separated for performance reasons.
+    /// Helps with reading from and writing to CSV files.
     /// </summary>
     internal static class CsvFileUtils
     {
