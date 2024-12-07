@@ -475,7 +475,7 @@ namespace Sim_Mix_Custom_Piece_Tests
             var dataSetFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.DataSetPath, dataSet);
             var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.TestResultsPath, $"Table 1 Data Set {dataSet} " +
                 $"Bucket Size {bucketSize} Epsilon {epsilonPercentage} Compressor {compressor.Method.DeclaringType!.Name}.csv");
-            var testResults = new List<Table1TestResults>();
+            var testResults = new List<TimedCompressionRatioTestResults>();
 
             var stopwatch = new Stopwatch();
 
@@ -509,7 +509,7 @@ namespace Sim_Mix_Custom_Piece_Tests
 
             stopwatch.Stop();
 
-            var csvTestResults = new Table1TestResults
+            var csvTestResults = new TimedCompressionRatioTestResults
             {
                 BucketSize = bucketSize,
                 CompressionRatio = averageCompressionRatioList.Sum() / averageCompressionRatioList.Count,
@@ -542,7 +542,7 @@ namespace Sim_Mix_Custom_Piece_Tests
             var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.TestResultsPath, $"Table 1 Data Set {dataSet} " +
                 $"Bucket Size {bucketSize} Bucket Number {bucketNumber} Epsilon {epsilonPercentage} Compressor " +
                 $"{compressor.Method.DeclaringType!.Name}.csv");
-            var testResults = new List<Table1TestResults>();
+            var testResults = new List<TimedCompressionRatioTestResults>();
 
             var stopwatch = new Stopwatch();
 
@@ -575,7 +575,7 @@ namespace Sim_Mix_Custom_Piece_Tests
 
             stopwatch.Stop();
 
-            var csvTestResults = new Table1TestResults
+            var csvTestResults = new TimedCompressionRatioTestResults
             {
                 BucketSize = bucketSize,
                 CompressionRatio = averageCompressionRatioList.Sum() / averageCompressionRatioList.Count,

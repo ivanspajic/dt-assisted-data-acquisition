@@ -5,7 +5,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestModels
     /// <summary>
     /// Used for writing experiment results relevant to table 1 to CSV files.
     /// </summary>
-    public class Table1TestResults : CompressionRatioTestResults
+    public class TimedCompressionRatioTestResults : CompressionRatioTestResults
     {
         [Index(4)]
         public string Compressor { get; set; }
