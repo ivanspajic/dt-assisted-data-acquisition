@@ -1,14 +1,13 @@
-using Sim_Mix_Custom_Piece_Tests.Utilities.CsvFileUtilities;
-using Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations;
-using Sim_Mix_Custom_Piece_Tests.Utilities.TestModels;
-using SimMixCustomPiece.Algorithms;
-using SimMixCustomPiece.Algorithms.Utilities;
-using SimMixCustomPiece.Models;
-using SimMixCustomPiece.Models.LinearSegments;
+using BusinessLogic.Algorithms;
+using BusinessLogic.Algorithms.Utilities;
+using Models;
+using Models.LinearSegments;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Tests.Utilities.TestDataConfigurations;
+using Tests.Utilities.TestModels;
 
-namespace Sim_Mix_Custom_Piece_Tests
+namespace Tests
 {
     public class PlaTests
     {
@@ -20,7 +19,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         [ClassData(typeof(TestData))]
         public void Reconstructed_Sim_Piece_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
         {
-            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
+            var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSet, bucketSize);
 
             foreach (var timeSeries in timeSeriesInBuckets)
             {
@@ -43,7 +42,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         [ClassData(typeof(TestData))]
         public void Reconstructed_Mix_Piece_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
         {
-            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
+            var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSet, bucketSize);
 
             foreach (var timeSeries in timeSeriesInBuckets)
             {
@@ -66,7 +65,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         [ClassData(typeof(TestData))]
         public void Reconstructed_Custom_Piece_time_series_within_epsilon_of_original(string dataSet, int bucketSize, double epsilonPercentage)
         {
-            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
+            var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSet, bucketSize);
 
             // Speeds this test up by skipping some buckets. Otherwise, this test takes a long time.
             var accelerator = 500;
@@ -92,7 +91,7 @@ namespace Sim_Mix_Custom_Piece_Tests
         [ClassData(typeof(TestData))]
         public void Custom_Piece_yields_smallest_possible_Mix_Piece_result(string dataSet, int bucketSize, double epsilonPercentage)
         {
-            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
+            var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSet, bucketSize);
 
             // Speeds this test up by skipping some buckets. Otherwise, this test takes a long time.
             var accelerator = 500;
@@ -141,7 +140,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
                 Debug.WriteLine("");
 
-                var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
+                var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSet, bucketSize);
 
                 // Use the average compression ratio for this set of test data.
                 var averageCompressionRatioList = new ConcurrentBag<double>();
@@ -172,7 +171,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 testResults.Add(csvTestResults);
             }
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+            TestData.FileRepository.Write(testResultsFilepath, testResults);
         }
 
         [Fact]
@@ -194,7 +193,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
                 Debug.WriteLine("");
 
-                var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSet, bucketSize);
+                var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSet, bucketSize);
 
                 // Use the average compression ratio for this set of test data.
                 var averageCompressionRatioList = new ConcurrentBag<double>();
@@ -225,7 +224,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 testResults.Add(csvTestResults);
             }
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+            TestData.FileRepository.Write(testResultsFilepath, testResults);
         }
 
         [Fact]
@@ -241,7 +240,7 @@ namespace Sim_Mix_Custom_Piece_Tests
 
             foreach (var bucketSize in TestData.BucketSizes)
             {
-                var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSetFilepath, bucketSize);
+                var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSetFilepath, bucketSize);
 
                 foreach (var epsilonPercentage in TestData.EpsilonPercentages)
                 {
@@ -281,7 +280,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 }
             }
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+            TestData.FileRepository.Write(testResultsFilepath, testResults);
         }
 
         [Theory] // The strings in InlineData parameters must be constant, so system-agnostic paths cannot be applied. Remember to update these manually according to need.
@@ -293,7 +292,7 @@ namespace Sim_Mix_Custom_Piece_Tests
             var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.TestResultsPath, $"Sim-Piece {epsilonPercentage} Percent Deviation Test Results.csv");
             var testResults = new List<DeviationTestResults>();
 
-            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSetFilepath, bucketSize);
+            var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSetFilepath, bucketSize);
 
             foreach (var originalTimeSeries in timeSeriesInBuckets)
             {
@@ -314,7 +313,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 }
             }
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+            TestData.FileRepository.Write(testResultsFilepath, testResults);
         }
 
         [Theory] // The strings in InlineData parameters must be constant, so system-agnostic paths cannot be applied. Remember to update these manually according to need.
@@ -326,7 +325,7 @@ namespace Sim_Mix_Custom_Piece_Tests
             var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.TestResultsPath, $"Mix-Piece {epsilonPercentage} Percent Deviation Test Results.csv");
             var testResults = new List<DeviationTestResults>();
 
-            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSetFilepath, bucketSize);
+            var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSetFilepath, bucketSize);
 
             foreach (var originalTimeSeries in timeSeriesInBuckets)
             {
@@ -347,7 +346,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 }
             }
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+            TestData.FileRepository.Write(dataSetFilepath, testResults);
         }
 
         [Theory] // The strings in InlineData parameters must be constant, so system-agnostic paths cannot be applied. Remember to update these manually according to need.
@@ -359,7 +358,7 @@ namespace Sim_Mix_Custom_Piece_Tests
             var testResultsFilepath = Path.Combine(TestData.BaseDataFilepath, TestData.TestResultsPath, $"Custom-Piece {epsilonPercentage} Percent Deviation Test Results.csv");
             var testResults = new List<DeviationTestResults>();
 
-            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSetFilepath, bucketSize);
+            var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSetFilepath, bucketSize);
 
             foreach (var originalTimeSeries in timeSeriesInBuckets)
             {
@@ -380,7 +379,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 }
             }
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+            TestData.FileRepository.Write(testResultsFilepath, testResults);
         }
 
         [Fact]
@@ -479,7 +478,7 @@ namespace Sim_Mix_Custom_Piece_Tests
 
             var stopwatch = new Stopwatch();
 
-            var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSetFilepath, bucketSize);
+            var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSetFilepath, bucketSize);
 
             Debug.WriteLine("");
             Debug.WriteLine("Data Set: " + dataSet);
@@ -521,7 +520,7 @@ namespace Sim_Mix_Custom_Piece_Tests
 
             testResults.Add(csvTestResults);
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+            TestData.FileRepository.Write(testResultsFilepath, testResults);
         }
 
         /// <summary>
@@ -546,7 +545,7 @@ namespace Sim_Mix_Custom_Piece_Tests
 
             var stopwatch = new Stopwatch();
 
-            var timeSeriesInSpecificBuckets = CsvFileUtils.ReadCsvTimeSeriesInSpecificBuckets(dataSetFilepath, bucketSize, bucketNumber);
+            var timeSeriesInSpecificBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSetFilepath, bucketSize, bucketNumber);
 
             Debug.WriteLine("");
             Debug.WriteLine("Data Set: " + dataSet);
@@ -587,7 +586,7 @@ namespace Sim_Mix_Custom_Piece_Tests
 
             testResults.Add(csvTestResults);
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
+            TestData.FileRepository.Write(testResultsFilepath, testResults);
         }
 
         [Fact]
@@ -611,7 +610,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                     Debug.WriteLine("Epsilon Percentage: " + epsilonPercentage);
                     Debug.WriteLine("");
 
-                    var timeSeriesInBuckets = CsvFileUtils.ReadWholeCsvTimeSeriesInBuckets(dataSetFilepath, bucketSize);
+                    var timeSeriesInBuckets = TestData.FileRepository.ReadTimeSeriesInBuckets(dataSetFilepath, bucketSize);
 
                     // Use the average compression ratio for this set of test data.
                     var averageCompressionRatioList = new ConcurrentBag<double>();
@@ -641,32 +640,7 @@ namespace Sim_Mix_Custom_Piece_Tests
                 }
             }
 
-            CsvFileUtils.WriteTestResultsToCsv(testResultsFilepath, testResults);
-        }
-
-        #endregion
-
-        #region Helpers
-
-        /// <summary>
-        /// Gets the average deviation percentage based on the deviation from each actual time series point value.
-        /// </summary>
-        /// <param name="actualTimeSeries"></param>
-        /// <param name="predictedTimeSeries"></param>
-        /// <returns></returns>
-        public static double GetPercentageDeviationFromActual(List<Point> actualTimeSeries, List<Point> testedTimeSeries)
-        {
-            var percentageAverageList = new List<double>();
-
-            for (var j = 0; j < actualTimeSeries.Count; j++)
-            {
-                var difference = Math.Abs(actualTimeSeries[j].Value - testedTimeSeries[j].Value);
-                var percentage = difference / actualTimeSeries[j].Value * 100;
-
-                percentageAverageList.Add(percentage);
-            }
-
-            return percentageAverageList.Sum() / percentageAverageList.Count;
+            TestData.FileRepository.Write(testResultsFilepath, testResults);
         }
 
         #endregion

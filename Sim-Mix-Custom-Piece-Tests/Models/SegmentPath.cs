@@ -1,4 +1,4 @@
-﻿namespace SimMixCustomPiece.Models
+﻿namespace Models
 {
     /// <summary>
     /// Represents a node in a tree of possible <see cref="Models.Segment"/> paths constructed from a time series.

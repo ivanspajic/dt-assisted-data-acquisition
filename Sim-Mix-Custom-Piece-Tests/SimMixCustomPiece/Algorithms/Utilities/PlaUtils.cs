@@ -1,7 +1,7 @@
-﻿using SimMixCustomPiece.Models;
-using SimMixCustomPiece.Models.LinearSegments;
+﻿using Models;
+using Models.LinearSegments;
 
-namespace SimMixCustomPiece.Algorithms.Utilities
+namespace BusinessLogic.Algorithms.Utilities
 {
     /// <summary>
     /// Contains utilities for PLA-based lossy compression as well as shared functionality of the Sim-, Mix-, and Custom-Piece

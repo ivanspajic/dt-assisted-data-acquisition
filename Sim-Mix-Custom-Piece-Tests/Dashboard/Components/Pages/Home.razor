@@ -1,0 +1,20 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>Low Bandwidth DT Dashboard</PageTitle>
+
+<div>Data Set: <input type="text" @bind="dataSet" /></div>
+<div>Bucket Size: <input type="number" @bind="bucketSize" /></div>
+<div>No. of Samples: <input type="number" @bind="numberOfSamples" /></div>
+<button @onclick="Simulate">Simulate</button>
+
+@code {
+    private string dataSet = string.Empty;
+    private int bucketSize = 0;
+    private int numberOfSamples = 0;
+
+    private void Simulate()
+    {
+        
+    }
+}

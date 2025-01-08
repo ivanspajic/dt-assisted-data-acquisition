@@ -1,4 +1,4 @@
-﻿namespace SimMixCustomPiece.Models
+﻿namespace Models
 {
     /// <summary>
     /// Represents a compressed section of a time series made of multiple points.

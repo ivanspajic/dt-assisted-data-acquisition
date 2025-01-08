@@ -1,4 +1,4 @@
-﻿namespace SimMixCustomPiece.Models.LinearSegments
+﻿namespace Models.LinearSegments
 {
     /// <summary>
     /// Represents the shared parts of the final output of a compressed time series.

@@ -1,4 +1,4 @@
-﻿namespace SimMixCustomPiece.Models
+﻿namespace Models
 {
     /// <summary>
     /// Represents a data point in a time series.

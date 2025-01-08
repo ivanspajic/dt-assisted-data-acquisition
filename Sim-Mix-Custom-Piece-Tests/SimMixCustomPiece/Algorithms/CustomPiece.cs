@@ -1,8 +1,8 @@
-﻿using SimMixCustomPiece.Algorithms.Utilities;
-using SimMixCustomPiece.Models;
-using SimMixCustomPiece.Models.LinearSegments;
+﻿using BusinessLogic.Algorithms.Utilities;
+using Models;
+using Models.LinearSegments;
 
-namespace SimMixCustomPiece.Algorithms
+namespace BusinessLogic.Algorithms
 {
     /// <summary>
     /// Implements Custom-Piece based on Mix-Piece with phase 1 (segment construction) changed.

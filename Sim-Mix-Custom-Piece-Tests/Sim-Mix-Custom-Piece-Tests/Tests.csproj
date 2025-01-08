@@ -12,14 +12,15 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
-    <PackageReference Include="CsvHelper" Version="33.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SimMixCustomPiece\SimMixCustomPiece.csproj" />
+    <ProjectReference Include="..\DataRepository\DataRepository.csproj" />
+    <ProjectReference Include="..\Models\Models.csproj" />
+    <ProjectReference Include="..\SimMixCustomPiece\BusinessLogic.csproj" />
   </ItemGroup>
 
   <ItemGroup>

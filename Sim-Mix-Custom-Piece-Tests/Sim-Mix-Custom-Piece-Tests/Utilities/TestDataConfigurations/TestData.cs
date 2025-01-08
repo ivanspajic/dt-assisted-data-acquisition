@@ -1,6 +1,7 @@
 ﻿using System.Collections;
+using DataRepository;
 
-namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
+namespace Tests.Utilities.TestDataConfigurations
 {
     internal class TestData : IEnumerable<object[]>
     {
@@ -9,6 +10,7 @@ namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestDataConfigurations
         public static readonly string DataSetPath = Path.Combine("data-sets", "austevoll-data");
         public const string TestResultsPath = "test-results";
         public static readonly TimeSpan SamplingInterval = TimeSpan.FromMinutes(30);
+        public static readonly IFileRepository FileRepository = new CsvFileRepository();
 
         // Filenames of data sets.
         public static readonly string[] DataSets =

@@ -1,8 +1,8 @@
-﻿using SimMixCustomPiece.Algorithms.Utilities;
-using SimMixCustomPiece.Models;
-using SimMixCustomPiece.Models.LinearSegments;
+﻿using BusinessLogic.Algorithms.Utilities;
+using Models;
+using Models.LinearSegments;
 
-namespace SimMixCustomPiece.Algorithms
+namespace BusinessLogic.Algorithms
 {
     /// <summary>
     /// Implements the Sim-Piece Piece-wise Linear Approximation algorithm.

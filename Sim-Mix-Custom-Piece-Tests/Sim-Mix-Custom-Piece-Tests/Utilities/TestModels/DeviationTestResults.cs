@@ -1,6 +1,6 @@
 ﻿using CsvHelper.Configuration.Attributes;
 
-namespace Sim_Mix_Custom_Piece_Tests.Utilities.TestModels
+namespace Tests.Utilities.TestModels
 {
     /// <summary>
     /// Used for writing deviation test results to CSV files.
