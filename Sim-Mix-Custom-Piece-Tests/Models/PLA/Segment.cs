@@ -1,4 +1,4 @@
-﻿namespace Models
+﻿namespace Models.PLA
 {
     /// <summary>
     /// Represents a compressed section of a time series made of multiple points.

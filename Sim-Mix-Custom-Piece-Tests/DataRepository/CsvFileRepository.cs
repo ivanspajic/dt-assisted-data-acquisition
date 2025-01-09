@@ -1,7 +1,7 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper;
 using System.Globalization;
-using Models;
+using Models.PLA;
 
 namespace DataRepository
 {

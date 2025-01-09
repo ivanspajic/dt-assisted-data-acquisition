@@ -1,4 +1,4 @@
-﻿namespace Models.LinearSegments
+﻿namespace Models.PLA.LinearSegments
 {
     /// <summary>
     /// Represents the final output of a compressed time series where the compressed segments share a gradient and a quantized

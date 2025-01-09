@@ -1,4 +1,7 @@
+using BusinessLogic;
 using Dashboard.Components;
+using DataRepository;
+using Syncfusion.Blazor;
 
 namespace Dashboard
 {
@@ -11,6 +14,11 @@ namespace Dashboard
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            builder.Services.AddSyncfusionBlazor();
+
+            builder.Services.AddSingleton<IFileRepository, CsvFileRepository>();
+            builder.Services.AddSingleton<Manager>();
 
             var app = builder.Build();
 

@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Syncfusion.Blazor.Charts" Version="28.1.38" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DataRepository\DataRepository.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />
     <ProjectReference Include="..\SimMixCustomPiece\BusinessLogic.csproj" />

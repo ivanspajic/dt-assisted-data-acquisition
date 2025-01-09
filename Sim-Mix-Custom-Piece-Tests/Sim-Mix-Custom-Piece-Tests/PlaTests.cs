@@ -1,7 +1,7 @@
 using BusinessLogic.Algorithms;
 using BusinessLogic.Algorithms.Utilities;
-using Models;
-using Models.LinearSegments;
+using Models.PLA;
+using Models.PLA.LinearSegments;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Tests.Utilities.TestDataConfigurations;

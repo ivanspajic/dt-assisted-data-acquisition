@@ -1,4 +1,4 @@
-﻿namespace Models.LinearSegments
+﻿namespace Models.PLA.LinearSegments
 {
     /// <summary>
     /// Represents the shared parts of the final output of a compressed time series.
