@@ -91,9 +91,9 @@ namespace DataRepository
 
             var records = csvReader.GetRecords<Point>()
                 .ToList();
-            var chunkNumber = (int)Math.Floor((double)records.Count / bucketNumber);
+            var chunkSize = (int)Math.Floor((double)records.Count / bucketNumber);
 
-            return records.Chunk(chunkNumber)
+            return records.Chunk(chunkSize)
                 .Select(chunk => chunk.Take(bucketSize).ToList())
                 .Where(bucket => bucket.Count == bucketSize)
                 .Take(bucketNumber)

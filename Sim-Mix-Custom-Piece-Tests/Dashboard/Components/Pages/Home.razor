@@ -5,13 +5,15 @@
 
 <PageTitle>Low Bandwidth DT Dashboard</PageTitle>
 
+<!--Needed for moving everything below the crappy license notice.-->
 <br />
 <br />
 <br />
+<!---->
 <div>Data Set: <input type="text" @bind="_dataSet" /></div>
 <div>Bucket Size: <input type="number" @bind="_bucketSize" /></div>
 <div>No. of Samples: <input type="number" @bind="_numberOfSamples" /></div>
-<SfChart>
+<SfChart >
     <ChartArea><ChartAreaBorder Width="0"></ChartAreaBorder></ChartArea>
     <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Double" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
         <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
@@ -22,7 +24,16 @@
     </ChartPrimaryYAxis>
     <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
     <ChartSeriesCollection>
-        <ChartSeries DataSource="@_timeSeries" Name="name" XName="SimpleTimestamp" Width="2" Opacity="1" YName="Value" Type="ChartSeriesType.Line"></ChartSeries>
+        <ChartSeries DataSource="@_timeSeries" XName="SimpleTimestamp" Width="2" Opacity="1" YName="Value" Type="ChartSeriesType.Line"
+                     Fill="blue"></ChartSeries>
+        @if (_sampleBuckets.Count == _numberOfSamples)
+        {
+            for (var i = 0; i < _numberOfSamples; i++)
+            {
+                <ChartSeries DataSource="@_sampleBuckets[i]" XName="SimpleTimestamp" Width="2" Opacity="1" YName="Value" Type="ChartSeriesType.Line"
+                             Fill="red"></ChartSeries>
+            }
+        }
     </ChartSeriesCollection>
     <ChartLegendSettings EnableHighlight="true"></ChartLegendSettings>
 </SfChart>
@@ -34,12 +45,16 @@
     private int _numberOfSamples = 0;
 
     private List<Models.PLA.Point> _timeSeries = new List<Models.PLA.Point>();
+    private List<List<Models.PLA.Point>> _sampleBuckets = new List<List<Models.PLA.Point>>();
 
     private SfChart chart;
 
     private void Visualize()
     {
-        if (_timeSeries.Count == 0)
+        if (_dataSet != string.Empty)
             _timeSeries = Manager.LoadTimeSeries(_dataSet);
+
+        if (_bucketSize > 0 && _numberOfSamples > 0)
+            _sampleBuckets = Manager.GetSampleBucketsFromTimeSeries(_dataSet, _bucketSize, _numberOfSamples);
     }
 }

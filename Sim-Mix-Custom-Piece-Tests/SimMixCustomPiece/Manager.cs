@@ -21,5 +21,10 @@ namespace BusinessLogic
         {
             return _fileRepository.ReadTimeSeries(locator);
         }
+
+        public List<List<Point>> GetSampleBucketsFromTimeSeries(string locator, int bucketSize, int numberOfSamples)
+        {
+            return _fileRepository.ReadTimeSeriesInBuckets(locator, bucketSize, numberOfSamples);
+        }
     }
 }
